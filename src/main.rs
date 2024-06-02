@@ -7,8 +7,7 @@ pub mod workspaces;
 // type WS<'a> = WorkspaceDetails<'a>;
 
 fn main() {
-    let mut args = env::args();
-    // split args by ' ' to handle the combined argument which rofi supplies
+    // split args by ' ' to handle the combined argument which rofi supplies / until figured out how to read the piped in signal
     let mut args = env::args()
         .collect::<Vec<String>>()
         .into_iter()
@@ -17,16 +16,11 @@ fn main() {
 
     if let Some(main_argument) = args.nth(1) {
         execute_userinput(
-            main_argument,                              // main argumen
+            main_argument,
             args.reduce(|a, b| format!("{} {}", a, b)), // parameters to argument
         );
     } else {
-        // print rofi menuitems
-        let wss = Workspaces::new();
-        wss.active_workspaces
-            .iter()
-            .chain(wss.inactive_workspaces.iter())
-            .for_each(|ws| println!("select {}", ws.basename));
+        println!("usage: swaymsg_workspace [ next prev swap_with_prev swap_with_next increase decrease rename_to select print_focused_name print_focused_number rofi_select_workspace rofi_move_window ]. ");
     }
 }
 
@@ -148,15 +142,24 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
         "print_focused_number" => {
             println!("{}", wss.focused().get_number());
         }
-        "print_rofi_workspaces" => {
-            wss.active_workspaces
+        "rofi_select_workspace" => match argument_parameter {
+            Some(workspacename) => execute_userinput("select".to_string(), Some(workspacename)),
+            None => wss
+                .active_workspaces
                 .iter()
                 .chain(wss.inactive_workspaces.iter())
-                .for_each(|ws| println!("select {}", ws.basename));
-        }
-        other => {
-            // dbg!(other);
-            println!("valid arguments: [ next prev swap_with_prev swap_with_next increase decrease rename_to select print_focused_name print_focused_number ]. ");
+                .for_each(|ws| println!("{}", ws.basename)),
+        },
+        "rofi_move_window" => match argument_parameter {
+            Some(workspacename) => wss.move_window(&workspacename),
+            None => wss
+                .active_workspaces
+                .iter()
+                .chain(wss.inactive_workspaces.iter())
+                .for_each(|ws| println!("{}", ws.basename)),
+        },
+        _ => {
+            println!("valid arguments: [ next prev swap_with_prev swap_with_next increase decrease rename_to select print_focused_name print_focused_number rofi_select_workspace rofi_move_window ]. ");
         }
     }
     wss.cleanup();

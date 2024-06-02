@@ -5,9 +5,10 @@ use swayipc::Connection;
 
 #[derive(Debug)]
 pub struct Workspace {
-    number: RefCell<Option<u32>>,
+    number: RefCell<Option<usize>>,
     name: RefCell<Option<String>>,
     pub basename: String,
+    next_free_index: usize,
 }
 
 #[derive(Debug)]
@@ -34,7 +35,7 @@ impl Workspace {
         }
     }
 
-    pub fn get_number(&self) -> u32 {
+    pub fn get_number(&self) -> usize {
         let number = &mut *self.number.borrow_mut();
         match number {
             Some(num) => *num,
@@ -48,36 +49,37 @@ impl Workspace {
         }
     }
 
-    pub fn slice_basename<'a>(&'a self) -> (u32, &'a str) {
-        cast_and_validate_fragments(extract_fragments(&self.basename), 0)
+    pub fn slice_basename<'a>(&'a self) -> (usize, &'a str) {
+        self.cast_and_validate_fragments(self.extract_fragments(&self.basename), 0)
     }
-}
 
-fn cast_and_validate_fragments<'a>(
-    fragments: (&'a str, &'a str),
-    // default_workspace_number: impl Fn() -> u32,
-    _default_workspace_number: u32,
-) -> (u32, &'a str) {
-    let (number, name) = fragments;
-    let number = match number.parse::<u32>() {
-        Ok(number) => number,
-        _ =>
-        //self.find_free_workspace_num()
-        {
-            0
-        } //default_workspace_number(),
-    };
-    let name = name.trim_start().trim_end();
-    (number, name)
-}
+    fn cast_and_validate_fragments<'a>(
+        &'a self,
+        fragments: (&'a str, &'a str),
+        // default_workspace_number: impl Fn() -> usize,
+        _default_workspace_number: usize,
+    ) -> (usize, &'a str) {
+        let (number, name) = fragments;
+        let number = match number.parse::<usize>() {
+            Ok(number) => number,
+            _ => {
+                self.next_free_index
+                // find_free_workspace_num()
+                // 0
+            } //default_workspace_number(),
+        };
+        let name = name.trim_start().trim_end();
+        (number, name)
+    }
 
-fn extract_fragments<'a>(wsname: &'a str) -> (&'a str, &'a str) {
-    let capture_number_and_name = Regex::new(r"^(?<number>\d*)\s*(?<name>.*)").unwrap();
-    let caps = capture_number_and_name.captures(&wsname).unwrap();
-    (
-        &wsname[..caps.get(1).unwrap().end()],
-        &wsname[caps.get(2).unwrap().start()..],
-    )
+    fn extract_fragments<'a>(&self, wsname: &'a str) -> (&'a str, &'a str) {
+        let capture_number_and_name = Regex::new(r"^(?<number>\d*)\s*(?<name>.*)").unwrap();
+        let caps = capture_number_and_name.captures(&wsname).unwrap();
+        (
+            &wsname[..caps.get(1).unwrap().end()],
+            &wsname[caps.get(2).unwrap().start()..],
+        )
+    }
 }
 
 impl Workspaces {
@@ -104,36 +106,43 @@ impl Workspaces {
                         .last()
                         .unwrap();
 
-                    let mut focused: usize = 0;
+                    let next_free_index = find_free_workspace_num(&ipcworkspaces);
+
+                    let inactive_workspaces = ipcworkspaces
+                        .iter()
+                        .filter(|workspace| workspace.output != focused_output_name)
+                        .map(|workspace| Workspace {
+                            number: RefCell::new(None),
+                            name: RefCell::new(None),
+                            basename: workspace.name.clone(),
+                            next_free_index: next_free_index,
+                        })
+                        .collect::<Vec<Workspace>>();
+
+                    let mut focused_index: usize = 0;
                     let active_workspaces = ipcworkspaces
                         .iter()
                         .filter(|workspace| workspace.output == focused_output_name)
                         .enumerate()
                         .map(|workspace| {
                             if workspace.1.focused == true {
-                                focused = workspace.0
+                                focused_index = workspace.0
                             };
                             Workspace {
                                 number: RefCell::new(None),
                                 name: RefCell::new(None),
                                 basename: workspace.1.name.clone(),
+                                next_free_index: next_free_index,
                             }
                         })
                         .collect::<Vec<Workspace>>();
+
                     return Workspaces {
                         connection: RefCell::new(connection),
                         taints: RefCell::new(vec![]),
                         active_workspaces,
-                        inactive_workspaces: ipcworkspaces
-                            .iter()
-                            .filter(|workspace| workspace.output != focused_output_name)
-                            .map(|workspace| Workspace {
-                                number: RefCell::new(None),
-                                name: RefCell::new(None),
-                                basename: workspace.name.clone(),
-                            })
-                            .collect::<Vec<Workspace>>(),
-                        focused_index: focused,
+                        inactive_workspaces,
+                        focused_index,
                     };
                 }
                 _ => panic!("Got no Workspaces or Outputs from IPC Connection"),
@@ -190,6 +199,12 @@ impl Workspaces {
             None => desired,
         }
     }
+    pub fn move_window(&self, to: &String) {
+        let _ = self
+            .connection
+            .borrow_mut()
+            .run_command(format!("move window to workspace '{}'", to));
+    }
     pub fn select(&self, name: &String) {
         let _ = self
             .connection
@@ -203,16 +218,16 @@ impl Workspaces {
                 connection.run_command(format!("rename workspace '{}' to '{}'", taint.1, taint.0));
         }
     }
-    // fn find_free_workspace_num(&self) -> u32 {
-    //     if let Ok(capture_starting_number) = Regex::new(r"^(?P<number>(\d*)).*") {
-    //         for ws in self.active_workspaces.iter().rev() {
-    //             if let Some(caps) = capture_starting_number.captures(&ws.basename) {
-    //                 if let Ok(number) = &caps["number"].parse::<usize>() {
-    //                     return (*number + 1) as u32;
-    //                 };
-    //             }
-    //         }
-    //     }
-    //     1
-    // }
+}
+fn find_free_workspace_num(wss: &Vec<swayipc::Workspace>) -> usize {
+    if let Ok(capture_starting_number) = Regex::new(r"^(?P<number>(\d*)).*") {
+        for ws in wss.iter().rev() {
+            if let Some(caps) = capture_starting_number.captures(&ws.name) {
+                if let Ok(number) = &caps["number"].parse::<usize>() {
+                    return (*number + 1) as usize;
+                };
+            }
+        }
+    }
+    1
 }
