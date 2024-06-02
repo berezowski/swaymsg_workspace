@@ -1,0 +1,8 @@
+[package]
+name = "swaymsg_workspace"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+regex = "1.10.4"
+swayipc = "3.0.2"
