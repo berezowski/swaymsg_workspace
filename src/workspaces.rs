@@ -98,7 +98,8 @@ impl Workspaces {
                 Connection::get_workspaces(&mut connection),
                 Connection::get_outputs(&mut connection),
             ) {
-                (Ok(ipcworkspaces), Ok(ipcoutputs)) => {
+                (Ok(mut ipcworkspaces), Ok(ipcoutputs)) => {
+                    ipcworkspaces.sort_by(|a, b| a.name.cmp(&b.name));
                     let focused_output_name = ipcoutputs
                         .iter()
                         .filter(|output| output.focused)
