@@ -7,7 +7,7 @@ pub mod workspaces;
 // type WS<'a> = WorkspaceDetails<'a>;
 
 fn main() {
-    // split args by ' ' to handle the combined argument which rofi supplies / until figured out how to read the piped in signal
+    // split args by ' ' to handle the combined argument which rofi supplies / until i figured out how to read the piped in signal
     let mut args = env::args()
         .collect::<Vec<String>>()
         .into_iter()
