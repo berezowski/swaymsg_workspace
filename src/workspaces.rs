@@ -19,8 +19,8 @@ pub struct Workspaces {
     focused_index: usize,
     connection: RefCell<Connection>,
     taints: RefCell<Vec<(String, String)>>,
-    pub active_workspaces: Vec<Workspace>,
-    pub inactive_workspaces: Vec<Workspace>,
+    pub same_screen_workspaces: Vec<Workspace>,
+    pub other_screen_workspaces: Vec<Workspace>,
 }
 
 impl Workspace {
@@ -53,7 +53,15 @@ impl Workspace {
         }
     }
 
-    pub fn slice_basename<'a>(&'a self) -> (usize, &'a str) {
+    pub fn rename(&self, to: &str) {
+        self.workspaces
+            .borrow()
+            .upgrade()
+            .unwrap()
+            .rename(&self.basename, to);
+    }
+
+    fn slice_basename<'a>(&'a self) -> (usize, &'a str) {
         self.cast_and_validate_fragments(self.extract_fragments(&self.basename))
     }
 
@@ -62,7 +70,7 @@ impl Workspace {
         fragments: (&'a str, &'a str),
     ) -> (usize, &'a str) {
         let (number, name) = fragments;
-        dbg!(&number);
+        // dbg!(&number);
         let number = match number.parse::<usize>() {
             Ok(number) => number,
             _ => self.find_free_workspace_num(),
@@ -86,11 +94,10 @@ impl Workspace {
                 .borrow()
                 .upgrade()
                 .unwrap()
-                .active_workspaces
+                .same_screen_workspaces
                 .iter()
                 .rev()
             {
-                dbg!(&workspace);
                 if let Some(caps) = capture_starting_number.captures(&workspace.basename) {
                     if let Ok(number) = &caps["number"].parse::<usize>() {
                         return (*number + 1) as usize;
@@ -104,10 +111,10 @@ impl Workspace {
 
 impl Workspaces {
     pub fn focused<'a>(&'a self) -> &'a Workspace {
-        self.active_workspaces.get(self.focused_index).unwrap()
+        self.same_screen_workspaces.get(self.focused_index).unwrap()
     }
     pub fn workspace<'a>(&'a self, active_index: usize) -> Option<&'a Workspace> {
-        self.active_workspaces.get(active_index)
+        self.same_screen_workspaces.get(active_index)
     }
     pub fn focused_index(&self) -> usize {
         self.focused_index
@@ -128,7 +135,7 @@ impl Workspaces {
                         .last()
                         .unwrap();
 
-                    let inactive_workspaces = ipcworkspaces
+                    let other_screen_workspaces = ipcworkspaces
                         .iter()
                         .filter(|workspace| workspace.output != focused_output_name)
                         .map(|workspace| Workspace {
@@ -140,7 +147,7 @@ impl Workspaces {
                         .collect::<Vec<Workspace>>();
 
                     let mut focused_index: usize = 0;
-                    let active_workspaces = ipcworkspaces
+                    let same_screen_workspaces = ipcworkspaces
                         .iter()
                         .filter(|workspace| workspace.output == focused_output_name)
                         .enumerate()
@@ -160,15 +167,15 @@ impl Workspaces {
                     let workspaces = Rc::new(Workspaces {
                         connection: RefCell::new(connection),
                         taints: RefCell::new(vec![]),
-                        active_workspaces,
-                        inactive_workspaces,
+                        same_screen_workspaces,
+                        other_screen_workspaces,
                         focused_index,
                     });
 
                     workspaces
-                        .active_workspaces
+                        .same_screen_workspaces
                         .iter()
-                        .chain(workspaces.inactive_workspaces.iter())
+                        .chain(workspaces.other_screen_workspaces.iter())
                         .for_each(|ws| *ws.workspaces.borrow_mut() = Rc::downgrade(&workspaces));
                     return workspaces;
                 }
@@ -182,28 +189,16 @@ impl Workspaces {
         if ws1.get_number() == ws2.get_number() {
             self.increase_index(ws1);
         } else {
-            self.rename(
-                &ws1.basename,
-                format!("{} {}", ws2.get_number(), ws1.get_name(),).trim(),
-            );
-            self.rename(
-                &ws2.basename,
-                format!("{} {}", ws1.get_number(), ws2.get_name()).trim(),
-            );
+            ws1.rename(format!("{} {}", ws2.get_number(), ws1.get_name()).trim());
+            ws2.rename(format!("{} {}", ws1.get_number(), ws2.get_name()).trim());
         }
     }
     pub fn increase_index(&self, ws: &Workspace) {
-        self.rename(
-            &ws.basename,
-            format!("{} {}", ws.get_number() + 1, ws.get_name()).trim(),
-        );
+        ws.rename(format!("{} {}", ws.get_number() + 1, ws.get_name()).trim());
     }
     pub fn decrease_index(&self, ws: &Workspace) {
         if ws.get_number() > 1 {
-            self.rename(
-                &ws.basename,
-                format!("{} {}", ws.get_number() - 1, ws.get_name()).trim(),
-            )
+            ws.rename(format!("{} {}", ws.get_number() - 1, ws.get_name()).trim())
         };
     }
     pub fn rename(&self, from: &str, to: &str) {
@@ -214,9 +209,9 @@ impl Workspaces {
     }
     pub fn dedupguard(&self, desired: String) -> String {
         match self
-            .active_workspaces
+            .same_screen_workspaces
             .iter()
-            .chain(self.inactive_workspaces.iter())
+            .chain(self.other_screen_workspaces.iter())
             .find(|ws| ws.basename == desired)
         {
             Some(_) => {
