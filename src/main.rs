@@ -25,151 +25,169 @@ fn main() {
 }
 
 fn execute_userinput(argument: String, argument_parameter: Option<String>) {
-    let wss = Workspaces::new();
+    let workspaces = Workspaces::new();
     match argument.as_str() {
-        "next" => match &mut wss.same_screen_workspaces.get(wss.focused_index() + 1) {
+        "next" => match &mut workspaces
+            .on_same_screen
+            .get(workspaces.focused_index() + 1)
+        {
             Some(workspace) => {
-                wss.select(&workspace.basename);
+                workspaces.select(&workspace.basename);
             }
             None => {
                 match argument_parameter {
                     Some(_) => {
-                        wss.select(
+                        workspaces.select(
                             // any additional argument triggers navigation across all workspaces
-                            &wss.other_screen_workspaces
+                            &workspaces
+                                .on_other_screen
                                 .first()
-                                .or_else(|| wss.same_screen_workspaces.first())
+                                .or_else(|| workspaces.on_same_screen.first())
                                 .unwrap()
                                 .basename,
                         );
                     }
-                    None => wss.select(&wss.same_screen_workspaces.first().unwrap().basename),
+                    None => workspaces.select(&workspaces.on_same_screen.first().unwrap().basename),
                 }
                 // &wss.active_workspaces.first().unwrap().basename);
             }
         },
         "prev" => {
-            if *&wss.focused_index() > 0 {
-                wss.select(
-                    &wss.same_screen_workspaces
-                        .get(wss.focused_index() - 1)
+            if *&workspaces.focused_index() > 0 {
+                workspaces.select(
+                    &workspaces
+                        .on_same_screen
+                        .get(workspaces.focused_index() - 1)
                         .unwrap()
                         .basename,
                 );
             } else {
                 match argument_parameter {
-                    Some(_) => wss.select(
+                    Some(_) => workspaces.select(
                         // any additional argument triggers navigation across all workspaces
-                        &wss.other_screen_workspaces
+                        &workspaces
+                            .on_other_screen
                             .last()
-                            .or_else(|| wss.same_screen_workspaces.last())
+                            .or_else(|| workspaces.on_same_screen.last())
                             .unwrap()
                             .basename,
                     ),
-                    None => wss.select(&wss.same_screen_workspaces.last().unwrap().basename),
+                    None => workspaces.select(&workspaces.on_same_screen.last().unwrap().basename),
                 }
             }
         }
         "swap_with_next" => {
             swap_workspace(
-                &wss,
-                wss.same_screen_workspaces.get(wss.focused_index()),
-                wss.same_screen_workspaces.get(wss.focused_index() + 1),
+                &workspaces,
+                workspaces.on_same_screen.get(workspaces.focused_index()),
+                workspaces
+                    .on_same_screen
+                    .get(workspaces.focused_index() + 1),
             );
         }
         "swap_with_prev" => {
-            if wss.focused_index() < 1 {
+            if workspaces.focused_index() < 1 {
                 swap_workspace(
-                    &wss,
+                    &workspaces,
                     None,
-                    wss.same_screen_workspaces.get(wss.focused_index()),
+                    workspaces.on_same_screen.get(workspaces.focused_index()),
                 );
             } else {
                 swap_workspace(
-                    &wss,
-                    wss.same_screen_workspaces.get(wss.focused_index() - 1),
-                    wss.same_screen_workspaces.get(wss.focused_index()),
+                    &workspaces,
+                    workspaces
+                        .on_same_screen
+                        .get(workspaces.focused_index() - 1),
+                    workspaces.on_same_screen.get(workspaces.focused_index()),
                 );
             }
         }
         "increase" => match (
-            wss.focused(),
-            wss.same_screen_workspaces
-                .get(wss.focused_index() + 1)
+            workspaces.get_focused(),
+            workspaces
+                .on_same_screen
+                .get(workspaces.focused_index() + 1)
                 .into_iter()
-                .filter(|next| &wss.focused().get_number() + 1 == next.get_number())
+                .filter(|next| &workspaces.get_focused().get_number() + 1 == next.get_number())
                 .last(),
         ) {
-            (ws1, Some(ws2)) => wss.swap(ws1, ws2),
-            (ws, None) => wss.increase_index(ws),
+            (ws1, Some(ws2)) => workspaces.swap(ws1, ws2),
+            (ws, None) => workspaces.increase_index(ws),
         },
         "decrease" => {
-            if wss.focused_index() > 0 {
+            if workspaces.focused_index() > 0 {
                 match (
-                    wss.same_screen_workspaces
-                        .get(wss.focused_index() - 1)
+                    workspaces
+                        .on_same_screen
+                        .get(workspaces.focused_index() - 1)
                         .into_iter()
-                        .filter(|prev| prev.get_number() + 1 == wss.focused().get_number())
+                        .filter(|prev| {
+                            prev.get_number() + 1 == workspaces.get_focused().get_number()
+                        })
                         .last(),
-                    wss.focused(),
+                    workspaces.get_focused(),
                 ) {
                     (Some(ws1), ws2) => {
-                        wss.swap(ws1, ws2);
+                        workspaces.swap(ws1, ws2);
                     }
-                    (None, ws) => wss.decrease_index(ws),
+                    (None, ws) => workspaces.decrease_index(ws),
                 }
             } else {
-                wss.decrease_index(wss.focused());
+                workspaces.decrease_index(workspaces.get_focused());
             }
         }
         "rename_to" => {
             let _ = if let Some(new_name) = argument_parameter {
-                wss.focused()
-                    .rename(format!("{} {}", wss.focused().get_number(), new_name).as_str());
+                workspaces.get_focused().rename(
+                    format!("{} {}", workspaces.get_focused().get_number(), new_name).as_str(),
+                );
             } else {
-                wss.focused()
-                    .rename(format!("{}", wss.focused().get_number()).as_str());
+                workspaces
+                    .get_focused()
+                    .rename(format!("{}", workspaces.get_focused().get_number()).as_str());
             };
         }
         "select" => {
             let _ = if let Some(workspace) = argument_parameter {
-                wss.select(&workspace);
+                workspaces.select(&workspace);
             };
         }
         "print_focused_name" => {
-            println!("{}", wss.focused().get_name());
+            println!("{}", workspaces.get_focused().get_name());
         }
         "print_focused_number" => {
-            println!("{}", wss.focused().get_number());
+            println!("{}", workspaces.get_focused().get_number());
         }
         "rofi_select_workspace" => match argument_parameter {
             Some(workspacename) => execute_userinput("select".to_string(), Some(workspacename)),
-            None => wss
-                .same_screen_workspaces
+            None => workspaces
+                // .on_all_screens()
+                .on_same_screen
                 .iter()
-                .chain(wss.other_screen_workspaces.iter())
+                .chain(workspaces.on_other_screen.iter())
                 .for_each(|ws| println!("{}", ws.basename)),
         },
         "rofi_move_window" => match argument_parameter {
-            Some(workspacename) => wss.move_window(&workspacename),
-            None => wss
-                .same_screen_workspaces
+            Some(workspacename) => workspaces.move_window(&workspacename),
+            None => workspaces
+                // .on_all_screens()
+                .on_same_screen
                 .iter()
-                .chain(wss.other_screen_workspaces.iter())
+                .chain(workspaces.on_other_screen.iter())
                 .for_each(|ws| println!("{}", ws.basename)),
         },
         _ => {
             eprintln!("valid arguments: [ next prev swap_with_prev swap_with_next increase decrease rename_to select print_focused_name print_focused_number rofi_select_workspace rofi_move_window ]. ");
         }
     }
-    wss.cleanup();
+    workspaces.cleanup();
 }
 
 fn swap_workspace(wss: &Workspaces, prev: Option<&Workspace>, next: Option<&Workspace>) {
     match (prev, next) {
         (Some(prev), Some(next)) => wss.swap(prev, next),
-        (Some(prev), None) => swap_workspace(wss, Some(prev), wss.same_screen_workspaces.first()),
-        (None, Some(next)) => swap_workspace(wss, wss.same_screen_workspaces.last(), Some(next)),
+        (Some(prev), None) => swap_workspace(wss, Some(prev), wss.on_same_screen.first()),
+        (None, Some(next)) => swap_workspace(wss, wss.on_same_screen.last(), Some(next)),
         (None, None) => {}
     }
 }
