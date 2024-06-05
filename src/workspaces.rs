@@ -128,9 +128,7 @@ pub fn sort_ipcworkspace(
     ) {
         (Some(number1), Some(number2)) => match number1.cmp(&number2) {
             Ordering::Equal => workspace1.name.cmp(&workspace2.name),
-            // Ordering(ordering) => ordering,
-            Ordering::Greater => Ordering::Greater,
-            Ordering::Less => Ordering::Less,
+            ordering => ordering,
         },
         (Some(_num), None) => Ordering::Greater,
         (None, Some(_num)) => Ordering::Less,
