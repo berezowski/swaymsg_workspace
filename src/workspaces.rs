@@ -1,13 +1,85 @@
 use core::panic;
 use regex::Regex;
+use std::borrow::Borrow;
 use std::cmp::Ordering;
-// use std::slice::Iter;
+use std::ops::Deref;
 use std::{
     cell::RefCell,
-    // iter::Chain,
     rc::{Rc, Weak},
 };
 use swayipc::Connection;
+
+#[derive(Debug)]
+pub struct VecOfWorkspaces {
+    items: Vec<Rc<Workspace>>,
+    focused: Option<Rc<Workspace>>,
+}
+
+impl Deref for VecOfWorkspaces {
+    type Target = Vec<Rc<Workspace>>;
+
+    fn deref(&self) -> &Vec<Rc<Workspace>> {
+        &self.items
+    }
+}
+
+impl FromIterator<Workspace> for VecOfWorkspaces {
+    fn from_iter<I: IntoIterator<Item = Workspace>>(iter: I) -> Self {
+        let mut vec_of_workspaces = VecOfWorkspaces {
+            items: vec![],
+            focused: None,
+        };
+        for i in iter {
+            let rci = Rc::new(i);
+            if rci.focused {
+                vec_of_workspaces.focused = Some(rci.clone());
+            }
+            vec_of_workspaces.items.push(rci);
+        }
+        vec_of_workspaces
+    }
+}
+
+impl VecOfWorkspaces {
+    pub fn get(&self, index: isize) -> Option<&Workspace> {
+        if index < 0 {
+            None
+        } else {
+            match self.items.get(index as usize) {
+                Some(rc) => Some(&*rc),
+                None => None,
+            }
+        }
+    }
+    pub fn focused(&self) -> Option<&Workspace> {
+        match &self.focused {
+            Some(rc) => Some(&*rc),
+            None => None,
+        }
+    }
+    pub fn first(&self) -> Option<&Workspace> {
+        match self.items.first() {
+            Some(rc) => Some(&*rc),
+            None => None,
+        }
+    }
+    pub fn last(&self) -> Option<&Workspace> {
+        match self.items.last() {
+            Some(rc) => Some(&*rc),
+            None => None,
+        }
+    }
+    pub fn next_of(&self, index: isize) -> Option<&Workspace> {
+        self.get(index as isize + 1)
+    }
+    pub fn prev_of(&self, index: isize) -> Option<&Workspace> {
+        if index < 0 {
+            None
+        } else {
+            self.get(index as isize - 1)
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct Workspace {
@@ -15,6 +87,7 @@ pub struct Workspace {
     name: RefCell<Option<String>>,
     pub basename: String,
     workspaces: RefCell<Weak<Workspaces>>,
+    focused: bool,
 }
 
 #[derive(Debug)]
@@ -22,8 +95,8 @@ pub struct Workspaces {
     focused_index: usize,
     connection: RefCell<Connection>,
     taints: RefCell<Vec<(String, String)>>,
-    pub on_same_screen: Vec<Workspace>,
-    pub on_other_screen: Vec<Workspace>,
+    pub on_same_screen: VecOfWorkspaces,
+    pub on_other_screen: VecOfWorkspaces,
 }
 
 impl Workspace {
@@ -138,21 +211,12 @@ pub fn sort_ipcworkspace(
 
 impl Workspaces {
     pub fn get_focused<'a>(&'a self) -> &'a Workspace {
-        self.on_same_screen.get(self.focused_index).unwrap()
+        self.on_same_screen
+            .get(self.focused_index as isize)
+            .unwrap()
     }
-    // pub fn on_all_screens(&self) -> Chain<Iter<'_, Workspace>> {
-    //     return self
-    //         .on_same_screen
-    //         .iter()
-    //         .chain(self.on_other_screen.iter());
-    //     // .into_iter();
-    // }
-
-    // pub fn workspace<'a>(&'a self, active_index: usize) -> Option<&'a Workspace> {
-    //     self.on_same_screen.get(active_index)
-    // }
-    pub fn focused_index(&self) -> usize {
-        self.focused_index
+    pub fn focused_index(&self) -> isize {
+        self.focused_index as isize
     }
     pub fn new() -> Rc<Workspaces> {
         if let Some(mut connection) = Connection::new().ok() {
@@ -178,26 +242,28 @@ impl Workspaces {
                             name: RefCell::new(None),
                             basename: workspace.name.clone(),
                             workspaces: RefCell::new(Weak::new()),
+                            focused: workspace.focused,
                         })
-                        .collect::<Vec<Workspace>>();
+                        .collect();
 
                     let mut focused_index: usize = 0;
                     let workspaces_on_same_screen = ipcworkspaces
                         .iter()
                         .filter(|workspace| workspace.output == focused_output_name)
                         .enumerate()
-                        .map(|workspace| {
-                            if workspace.1.focused == true {
-                                focused_index = workspace.0
+                        .map(|(index, workspace)| {
+                            if workspace.focused == true {
+                                focused_index = index
                             };
                             Workspace {
                                 number: RefCell::new(None),
                                 name: RefCell::new(None),
-                                basename: workspace.1.name.clone(),
+                                basename: workspace.name.clone(),
                                 workspaces: RefCell::new(Weak::new()),
+                                focused: workspace.focused,
                             }
                         })
-                        .collect::<Vec<Workspace>>();
+                        .collect();
 
                     let workspaces = Rc::new(Workspaces {
                         connection: RefCell::new(connection),

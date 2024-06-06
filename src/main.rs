@@ -8,6 +8,8 @@ pub mod workspaces;
 
 fn main() {
     // split args by ' ' to handle the combined argument which rofi supplies / until i figured out how to read the piped in signal
+    // std::process::Command::status()
+    // dbg!(std::process::ExitStatus);
     let mut args = env::args()
         .collect::<Vec<String>>()
         .into_iter()
@@ -29,7 +31,7 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
     match argument.as_str() {
         "next" => match &mut workspaces
             .on_same_screen
-            .get(workspaces.focused_index() + 1)
+            .next_of(workspaces.focused_index())
         {
             Some(workspace) => {
                 workspaces.select(&workspace.basename);
@@ -49,20 +51,15 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
                     }
                     None => workspaces.select(&workspaces.on_same_screen.first().unwrap().basename),
                 }
-                // &wss.active_workspaces.first().unwrap().basename);
             }
         },
         "prev" => {
-            if *&workspaces.focused_index() > 0 {
-                workspaces.select(
-                    &workspaces
-                        .on_same_screen
-                        .get(workspaces.focused_index() - 1)
-                        .unwrap()
-                        .basename,
-                );
-            } else {
-                match argument_parameter {
+            match &workspaces
+                .on_same_screen
+                .prev_of(workspaces.focused_index())
+            {
+                Some(workspace) => workspaces.select(&workspace.basename),
+                None => match argument_parameter {
                     Some(_) => workspaces.select(
                         // any additional argument triggers navigation across all workspaces
                         &workspaces
@@ -73,7 +70,7 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
                             .basename,
                     ),
                     None => workspaces.select(&workspaces.on_same_screen.last().unwrap().basename),
-                }
+                },
             }
         }
         "swap_with_next" => {
@@ -82,7 +79,7 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
                 workspaces.on_same_screen.get(workspaces.focused_index()),
                 workspaces
                     .on_same_screen
-                    .get(workspaces.focused_index() + 1),
+                    .next_of(workspaces.focused_index()),
             );
         }
         "swap_with_prev" => {
