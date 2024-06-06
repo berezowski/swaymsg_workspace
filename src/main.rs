@@ -30,7 +30,7 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
     let workspaces = Workspaces::new();
     match argument.as_str() {
         "next" => match &mut workspaces
-            .on_same_screen
+            .on_same_screen()
             .next_of(workspaces.focused_index())
         {
             Some(workspace) => {
@@ -42,20 +42,22 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
                         workspaces.select(
                             // any additional argument triggers navigation across all workspaces
                             &workspaces
-                                .on_other_screen
+                                .on_other_screen()
                                 .first()
-                                .or_else(|| workspaces.on_same_screen.first())
+                                .or_else(|| workspaces.on_same_screen().first())
                                 .unwrap()
                                 .basename,
                         );
                     }
-                    None => workspaces.select(&workspaces.on_same_screen.first().unwrap().basename),
+                    None => {
+                        workspaces.select(&workspaces.on_same_screen().first().unwrap().basename)
+                    }
                 }
             }
         },
         "prev" => {
             match &workspaces
-                .on_same_screen
+                .on_same_screen()
                 .prev_of(workspaces.focused_index())
             {
                 Some(workspace) => workspaces.select(&workspace.basename),
@@ -63,22 +65,24 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
                     Some(_) => workspaces.select(
                         // any additional argument triggers navigation across all workspaces
                         &workspaces
-                            .on_other_screen
+                            .on_other_screen()
                             .last()
-                            .or_else(|| workspaces.on_same_screen.last())
+                            .or_else(|| workspaces.on_same_screen().last())
                             .unwrap()
                             .basename,
                     ),
-                    None => workspaces.select(&workspaces.on_same_screen.last().unwrap().basename),
+                    None => {
+                        workspaces.select(&workspaces.on_same_screen().last().unwrap().basename)
+                    }
                 },
             }
         }
         "swap_with_next" => {
             swap_workspace(
                 &workspaces,
-                workspaces.on_same_screen.get(workspaces.focused_index()),
+                workspaces.on_same_screen().get(workspaces.focused_index()),
                 workspaces
-                    .on_same_screen
+                    .on_same_screen()
                     .next_of(workspaces.focused_index()),
             );
         }
@@ -87,22 +91,22 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
                 swap_workspace(
                     &workspaces,
                     None,
-                    workspaces.on_same_screen.get(workspaces.focused_index()),
+                    workspaces.on_same_screen().get(workspaces.focused_index()),
                 );
             } else {
                 swap_workspace(
                     &workspaces,
                     workspaces
-                        .on_same_screen
+                        .on_same_screen()
                         .get(workspaces.focused_index() - 1),
-                    workspaces.on_same_screen.get(workspaces.focused_index()),
+                    workspaces.on_same_screen().get(workspaces.focused_index()),
                 );
             }
         }
         "increase" => match (
             workspaces.get_focused(),
             workspaces
-                .on_same_screen
+                .on_same_screen()
                 .get(workspaces.focused_index() + 1)
                 .into_iter()
                 .filter(|next| &workspaces.get_focused().get_number() + 1 == next.get_number())
@@ -115,7 +119,7 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
             if workspaces.focused_index() > 0 {
                 match (
                     workspaces
-                        .on_same_screen
+                        .on_same_screen()
                         .get(workspaces.focused_index() - 1)
                         .into_iter()
                         .filter(|prev| {
@@ -144,6 +148,23 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
                     .rename(format!("{}", workspaces.get_focused().get_number()).as_str());
             };
         }
+        "number" => match argument_parameter {
+            Some(number) => {
+                if let Ok(number) = number.parse::<usize>() {
+                    workspaces.select_or_create_number(number);
+                }
+            }
+            None => (),
+        },
+
+        "move_container_to_workspace_number" => match argument_parameter {
+            Some(number) => {
+                if let Ok(number) = number.parse::<usize>() {
+                    workspaces.move_container_to_number(number);
+                }
+            }
+            None => (),
+        },
         "select" => {
             let _ = if let Some(workspace) = argument_parameter {
                 workspaces.select(&workspace);
@@ -158,19 +179,17 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
         "rofi_select_workspace" => match argument_parameter {
             Some(workspacename) => execute_userinput("select".to_string(), Some(workspacename)),
             None => workspaces
-                // .on_all_screens()
-                .on_same_screen
+                .on_all_screens()
+                // .on_same_screen()
                 .iter()
-                .chain(workspaces.on_other_screen.iter())
                 .for_each(|ws| println!("{}", ws.basename)),
         },
         "rofi_move_window" => match argument_parameter {
-            Some(workspacename) => workspaces.move_window(&workspacename),
+            Some(workspacename) => workspaces.move_container_to(&workspacename),
             None => workspaces
-                // .on_all_screens()
-                .on_same_screen
+                .on_all_screens()
+                // .on_same_screen()
                 .iter()
-                .chain(workspaces.on_other_screen.iter())
                 .for_each(|ws| println!("{}", ws.basename)),
         },
         _ => {
@@ -183,8 +202,8 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
 fn swap_workspace(wss: &Workspaces, prev: Option<&Workspace>, next: Option<&Workspace>) {
     match (prev, next) {
         (Some(prev), Some(next)) => wss.swap(prev, next),
-        (Some(prev), None) => swap_workspace(wss, Some(prev), wss.on_same_screen.first()),
-        (None, Some(next)) => swap_workspace(wss, wss.on_same_screen.last(), Some(next)),
+        (Some(prev), None) => swap_workspace(wss, Some(prev), wss.on_same_screen().first()),
+        (None, Some(next)) => swap_workspace(wss, wss.on_same_screen().last(), Some(next)),
         (None, None) => {}
     }
 }

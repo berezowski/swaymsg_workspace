@@ -1,6 +1,5 @@
-use core::panic;
+use core::{num, panic};
 use regex::Regex;
-use std::borrow::Borrow;
 use std::cmp::Ordering;
 use std::ops::Deref;
 use std::{
@@ -35,6 +34,21 @@ impl FromIterator<Workspace> for VecOfWorkspaces {
                 vec_of_workspaces.focused = Some(rci.clone());
             }
             vec_of_workspaces.items.push(rci);
+        }
+        vec_of_workspaces
+    }
+}
+impl FromIterator<Rc<Workspace>> for VecOfWorkspaces {
+    fn from_iter<I: IntoIterator<Item = Rc<Workspace>>>(iter: I) -> Self {
+        let mut vec_of_workspaces = VecOfWorkspaces {
+            items: vec![],
+            focused: None,
+        };
+        for i in iter {
+            if i.focused {
+                vec_of_workspaces.focused = Some(i.clone());
+            }
+            vec_of_workspaces.items.push(i);
         }
         vec_of_workspaces
     }
@@ -218,6 +232,19 @@ impl Workspaces {
     pub fn focused_index(&self) -> isize {
         self.focused_index as isize
     }
+    pub fn on_same_screen(&self) -> &VecOfWorkspaces {
+        &self.on_same_screen
+    }
+    pub fn on_other_screen(&self) -> &VecOfWorkspaces {
+        &self.on_other_screen
+    }
+    pub fn on_all_screens(&self) -> VecOfWorkspaces {
+        self.on_same_screen
+            .iter()
+            .chain(self.on_other_screen.iter())
+            .map(|i| i.clone())
+            .collect()
+    }
     pub fn new() -> Rc<Workspaces> {
         if let Some(mut connection) = Connection::new().ok() {
             match (
@@ -325,7 +352,7 @@ impl Workspaces {
             None => desired,
         }
     }
-    pub fn move_window(&self, to: &String) {
+    pub fn move_container_to(&self, to: &String) {
         let _ = self
             .connection
             .borrow_mut()
@@ -337,6 +364,41 @@ impl Workspaces {
             .borrow_mut()
             .run_command(format!("workspace '{}'", name));
     }
+    pub fn select_new(&self, basename: String) {
+        let _ = self
+            .connection
+            .borrow_mut()
+            .run_command(format!("workspace '{}'", self.dedupguard(basename)));
+    }
+    pub fn move_to_new(&self, basename: String) {
+        let _ = self.connection.borrow_mut().run_command(format!(
+            "move window to workspace '{}'",
+            self.dedupguard(basename)
+        ));
+    }
+    pub fn select_or_create_number(&self, number: usize) {
+        match self
+            .on_same_screen()
+            .iter()
+            .filter(|ws| ws.basename.starts_with(format!("{number}").as_str()))
+            .last()
+        {
+            Some(workspace) => self.select(&workspace.basename),
+            None => self.select_new(format!("{number}")),
+        }
+    }
+    pub fn move_container_to_number(&self, number: usize) {
+        match self
+            .on_same_screen()
+            .iter()
+            .filter(|ws| ws.basename.starts_with(format!("{number}").as_str()))
+            .last()
+        {
+            Some(workspace) => self.move_container_to(&workspace.basename),
+            None => self.move_to_new(format!("{number}")),
+        }
+    }
+
     pub fn cleanup(&self) {
         let mut connection = self.connection.borrow_mut();
         for taint in self.taints.borrow_mut().iter() {
