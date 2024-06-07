@@ -1,4 +1,5 @@
 use std::env;
+use std::fmt::Result;
 
 use workspaces::Workspace;
 use workspaces::Workspaces;
@@ -8,8 +9,6 @@ pub mod workspaces;
 
 fn main() {
     // split args by ' ' to handle the combined argument which rofi supplies / until i figured out how to read the piped in signal
-    // std::process::Command::status()
-    // dbg!(std::process::ExitStatus);
     let mut args = env::args()
         .collect::<Vec<String>>()
         .into_iter()
@@ -17,16 +16,18 @@ fn main() {
         .into_iter();
 
     if let Some(main_argument) = args.nth(1) {
-        execute_userinput(
+        if let Err(error) = execute_userinput(
             main_argument,
             args.reduce(|a, b| format!("{} {}", a, b)), // parameters to argument
-        );
+        ) {
+            eprintln!("Something broke: {error}");
+        }
     } else {
         eprintln!("usage: swaymsg_workspace [ next prev swap_with_prev swap_with_next increase decrease rename_to select print_focused_name print_focused_number rofi_select_workspace rofi_move_window ]. ");
     }
 }
 
-fn execute_userinput(argument: String, argument_parameter: Option<String>) {
+fn execute_userinput(argument: String, argument_parameter: Option<String>) -> Result {
     let workspaces = Workspaces::new();
     match argument.as_str() {
         "next" => match &mut workspaces
@@ -87,54 +88,40 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
             );
         }
         "swap_with_prev" => {
-            if workspaces.focused_index() < 1 {
-                swap_workspace(
-                    &workspaces,
-                    None,
-                    workspaces.on_same_screen().get(workspaces.focused_index()),
-                );
-            } else {
-                swap_workspace(
-                    &workspaces,
-                    workspaces
-                        .on_same_screen()
-                        .get(workspaces.focused_index() - 1),
-                    workspaces.on_same_screen().get(workspaces.focused_index()),
-                );
-            }
+            swap_workspace(
+                &workspaces,
+                workspaces
+                    .on_same_screen()
+                    .prev_of(workspaces.focused_index()),
+                workspaces.on_same_screen().get(workspaces.focused_index()),
+            );
         }
         "increase" => match (
             workspaces.get_focused(),
             workspaces
                 .on_same_screen()
-                .get(workspaces.focused_index() + 1)
+                .next_of(workspaces.focused_index())
                 .into_iter()
+                // filter out anything but the workspace with the number which this increase would inhabit
                 .filter(|next| &workspaces.get_focused().get_number() + 1 == next.get_number())
                 .last(),
         ) {
             (ws1, Some(ws2)) => workspaces.swap(ws1, ws2),
-            (ws, None) => workspaces.increase_index(ws),
+            (ws, None) => workspaces.increase_number(ws),
         },
         "decrease" => {
-            if workspaces.focused_index() > 0 {
-                match (
-                    workspaces
-                        .on_same_screen()
-                        .get(workspaces.focused_index() - 1)
-                        .into_iter()
-                        .filter(|prev| {
-                            prev.get_number() + 1 == workspaces.get_focused().get_number()
-                        })
-                        .last(),
-                    workspaces.get_focused(),
-                ) {
-                    (Some(ws1), ws2) => {
-                        workspaces.swap(ws1, ws2);
-                    }
-                    (None, ws) => workspaces.decrease_index(ws),
-                }
-            } else {
-                workspaces.decrease_index(workspaces.get_focused());
+            match (
+                workspaces
+                    .on_same_screen()
+                    .prev_of(workspaces.focused_index())
+                    .into_iter()
+                    // filter out anything but the workspace with the number which this decrease would inhabit
+                    .filter(|prev| prev.get_number() + 1 == workspaces.get_focused().get_number())
+                    .last(),
+                workspaces.get_focused(),
+            ) {
+                (Some(ws1), ws2) => workspaces.swap(ws1, ws2),
+                (None, ws) => workspaces.decrease_number(ws),
             }
         }
         "rename_to" => {
@@ -177,10 +164,9 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
             println!("{}", workspaces.get_focused().get_number());
         }
         "rofi_select_workspace" => match argument_parameter {
-            Some(workspacename) => execute_userinput("select".to_string(), Some(workspacename)),
+            Some(workspacename) => execute_userinput("select".to_string(), Some(workspacename))?,
             None => workspaces
                 .on_all_screens()
-                // .on_same_screen()
                 .iter()
                 .for_each(|ws| println!("{}", ws.basename)),
         },
@@ -188,7 +174,6 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
             Some(workspacename) => workspaces.move_container_to(&workspacename),
             None => workspaces
                 .on_all_screens()
-                // .on_same_screen()
                 .iter()
                 .for_each(|ws| println!("{}", ws.basename)),
         },
@@ -197,6 +182,7 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) {
         }
     }
     workspaces.cleanup();
+    Ok(())
 }
 
 fn swap_workspace(wss: &Workspaces, prev: Option<&Workspace>, next: Option<&Workspace>) {

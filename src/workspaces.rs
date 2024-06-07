@@ -1,4 +1,4 @@
-use core::{num, panic};
+use core::panic;
 use regex::Regex;
 use std::cmp::Ordering;
 use std::ops::Deref;
@@ -315,16 +315,16 @@ impl Workspaces {
     }
     pub fn swap(&self, ws1: &Workspace, ws2: &Workspace) {
         if ws1.get_number() == ws2.get_number() {
-            self.increase_index(ws1);
+            self.increase_number(ws1);
         } else {
             ws1.rename(format!("{} {}", ws2.get_number(), ws1.get_name()).trim());
             ws2.rename(format!("{} {}", ws1.get_number(), ws2.get_name()).trim());
         }
     }
-    pub fn increase_index(&self, ws: &Workspace) {
+    pub fn increase_number(&self, ws: &Workspace) {
         ws.rename(format!("{} {}", ws.get_number() + 1, ws.get_name()).trim());
     }
-    pub fn decrease_index(&self, ws: &Workspace) {
+    pub fn decrease_number(&self, ws: &Workspace) {
         if ws.get_number() > 1 {
             ws.rename(format!("{} {}", ws.get_number() - 1, ws.get_name()).trim())
         };
@@ -332,7 +332,7 @@ impl Workspaces {
     pub fn rename(&self, from: &str, to: &str) {
         let _res = self.connection.borrow_mut().run_command(format!(
             "rename workspace '{from}' to '{}'",
-            self.dedupguard(to.to_string())
+            self.dedupguard(to.to_string().replace("\u{200B}", ""))
         ));
     }
     pub fn dedupguard(&self, desired: String) -> String {
@@ -343,7 +343,7 @@ impl Workspaces {
             .find(|ws| ws.basename == desired)
         {
             Some(_) => {
-                let to = desired.to_string() + "\u{FEFF}"; //add 'invisible' char
+                let to = desired.to_string() + "\u{200B}"; //add 'zero width space' char
                 self.taints
                     .borrow_mut()
                     .push((desired.to_string(), to.clone()));
