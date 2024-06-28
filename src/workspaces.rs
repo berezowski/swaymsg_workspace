@@ -1,5 +1,8 @@
-use core::panic;
+// use core::panic;
+use mockall::*;
+use mockall::{automock, predicate::*};
 use regex::Regex;
+use std::borrow::Borrow;
 use std::cmp::Ordering;
 use std::ops::Deref;
 use std::{
@@ -38,6 +41,7 @@ impl FromIterator<Workspace> for VecOfWorkspaces {
         vec_of_workspaces
     }
 }
+
 impl FromIterator<Rc<Workspace>> for VecOfWorkspaces {
     fn from_iter<I: IntoIterator<Item = Rc<Workspace>>>(iter: I) -> Self {
         let mut vec_of_workspaces = VecOfWorkspaces {
@@ -106,7 +110,7 @@ pub struct Workspace {
 
 #[derive(Debug)]
 pub struct Workspaces {
-    focused_index: usize,
+    same_screen_focused_index: usize,
     connection: RefCell<Connection>,
     taints: RefCell<Vec<(String, String)>>,
     pub on_same_screen: VecOfWorkspaces,
@@ -144,11 +148,7 @@ impl Workspace {
     }
 
     pub fn rename(&self, to: &str) {
-        self.workspaces
-            .borrow()
-            .upgrade()
-            .unwrap()
-            .rename(&self.basename, to);
+        self.workspaces().rename(&self.basename, to);
     }
 
     fn slice_basename<'a>(&'a self) -> (usize, &'a str) {
@@ -176,22 +176,22 @@ impl Workspace {
             &wsname[caps.get(2).unwrap().start()..],
         )
     }
+    fn workspaces(&self) -> Rc<Workspaces> {
+        self.workspaces.borrow().upgrade().unwrap()
+    }
     fn find_free_workspace_num(&self) -> usize {
-        for workspace in self
-            .workspaces
-            .borrow()
-            .upgrade()
-            .unwrap()
+        self.workspaces()
             .on_same_screen
             .iter()
-            .rev()
-        {
-            if let Some(starting_number) = extract_starting_number(&workspace.basename) {
-                return starting_number + 1;
-            }
-        }
-        1 // default if no other workspace is enumerated
+            .rev() // since workspaces are sorted we start from the back to get the highest number
+            .filter_map(|workspace| extract_starting_number(&workspace.basename))
+            .next()
+            .unwrap_or(0) // default if no other workspace is enumerated
+            + 1 // remember, we want the next free number
     }
+    // fn find_free_adjecent_workspace_num(&self) -> usize {
+    //     self.workspaces().on_same_screen[self.workspaces().same_screen_focused_index..].iter()
+    // }
 }
 
 pub fn extract_starting_number(source: &str) -> Option<usize> {
@@ -223,14 +223,122 @@ pub fn sort_ipcworkspace(
     }
 }
 
+// #[automock]
+
+#[automock]
+pub trait WorkspaceGenerator {
+    fn from_sway() -> Rc<Workspaces>;
+}
+
+// trait WorkspaceGenerator {
+//     fn from_sway(&self) -> &str;
+// }
+
+impl WorkspaceGenerator for Workspaces {
+    // #[mockall::expect_trait_object]
+    fn from_sway() -> Rc<Workspaces> {
+        if let Some(mut connection) = Connection::new().ok() {
+            match (
+                Connection::get_workspaces(&mut connection),
+                Connection::get_outputs(&mut connection),
+            ) {
+                (Ok(ipcworkspaces), Ok(ipcoutputs)) => {
+                    return Workspaces::extract_workspaces(connection, ipcworkspaces, ipcoutputs)
+                }
+                _ => panic!("Got no Workspaces or Outputs from IPC Connection"),
+            }
+        } else {
+            panic!("IPC Connection failed");
+        }
+    }
+}
+
 impl Workspaces {
+    pub fn new() -> Rc<Workspaces> {
+        Workspaces::from_sway()
+    }
+    fn map_ipcworkspace_to_workspace(ipc_workspace: &swayipc::Workspace) -> Workspace {
+        Workspace {
+            number: RefCell::new({
+                if ipc_workspace.num == -1 {
+                    None
+                } else {
+                    Some(ipc_workspace.num as usize)
+                }
+            }),
+            name: RefCell::new({
+                if ipc_workspace.num == -1 {
+                    None
+                } else {
+                    Some(
+                        ipc_workspace
+                            .name
+                            .trim_start_matches(ipc_workspace.num.to_string().as_str())
+                            .trim()
+                            .to_string(),
+                    )
+                }
+            }),
+            basename: ipc_workspace.name.clone(),
+            workspaces: RefCell::new(Weak::new()),
+            focused: ipc_workspace.focused,
+        }
+    }
+    pub fn extract_workspaces(
+        connection: swayipc::Connection,
+        mut ipcworkspaces: Vec<swayipc::Workspace>,
+        ipcoutputs: Vec<swayipc::Output>,
+    ) -> Rc<Workspaces> {
+        ipcworkspaces.sort_by(|a, b| sort_ipcworkspace(&a, &b));
+        let focused_output_name = ipcoutputs
+            .iter()
+            .filter(|output| output.focused)
+            .map(|output| output.name.to_owned())
+            .last()
+            .unwrap();
+
+        let workspaces_on_other_screen = ipcworkspaces
+            .iter()
+            .filter(|ipc_workspace| ipc_workspace.output != focused_output_name)
+            .map(Self::map_ipcworkspace_to_workspace)
+            .collect();
+
+        let mut same_screen_focused_index: usize = 0;
+        let workspaces_on_same_screen = ipcworkspaces
+            .iter()
+            .filter(|ipc_workspace| ipc_workspace.output == focused_output_name)
+            .enumerate()
+            .map(|(index, ipc_workspace)| {
+                if ipc_workspace.focused {
+                    same_screen_focused_index = index
+                };
+                ipc_workspace // remove enumeration from stream
+            })
+            .map(Self::map_ipcworkspace_to_workspace)
+            .collect();
+
+        let workspaces = Rc::new(Workspaces {
+            connection: RefCell::new(connection),
+            taints: RefCell::new(vec![]),
+            on_same_screen: workspaces_on_same_screen,
+            on_other_screen: workspaces_on_other_screen,
+            same_screen_focused_index,
+        });
+
+        workspaces
+            .on_same_screen
+            .iter()
+            .chain(workspaces.on_other_screen.iter())
+            .for_each(|ws| *ws.workspaces.borrow_mut() = Rc::downgrade(&workspaces));
+        return workspaces;
+    }
     pub fn get_focused<'a>(&'a self) -> &'a Workspace {
         self.on_same_screen
-            .get(self.focused_index as isize)
+            .get(self.same_screen_focused_index as isize)
             .unwrap()
     }
     pub fn focused_index(&self) -> isize {
-        self.focused_index as isize
+        self.same_screen_focused_index as isize
     }
     pub fn on_same_screen(&self) -> &VecOfWorkspaces {
         &self.on_same_screen
@@ -244,74 +352,6 @@ impl Workspaces {
             .chain(self.on_other_screen.iter())
             .map(|i| i.clone())
             .collect()
-    }
-    pub fn new() -> Rc<Workspaces> {
-        if let Some(mut connection) = Connection::new().ok() {
-            match (
-                Connection::get_workspaces(&mut connection),
-                Connection::get_outputs(&mut connection),
-            ) {
-                (Ok(mut ipcworkspaces), Ok(ipcoutputs)) => {
-                    ipcworkspaces.sort_by(|a, b| sort_ipcworkspace(&a, &b));
-
-                    let focused_output_name = ipcoutputs
-                        .iter()
-                        .filter(|output| output.focused)
-                        .map(|output| output.name.to_owned())
-                        .last()
-                        .unwrap();
-
-                    let workspaces_on_other_screen = ipcworkspaces
-                        .iter()
-                        .filter(|workspace| workspace.output != focused_output_name)
-                        .map(|workspace| Workspace {
-                            number: RefCell::new(None),
-                            name: RefCell::new(None),
-                            basename: workspace.name.clone(),
-                            workspaces: RefCell::new(Weak::new()),
-                            focused: workspace.focused,
-                        })
-                        .collect();
-
-                    let mut focused_index: usize = 0;
-                    let workspaces_on_same_screen = ipcworkspaces
-                        .iter()
-                        .filter(|workspace| workspace.output == focused_output_name)
-                        .enumerate()
-                        .map(|(index, workspace)| {
-                            if workspace.focused == true {
-                                focused_index = index
-                            };
-                            Workspace {
-                                number: RefCell::new(None),
-                                name: RefCell::new(None),
-                                basename: workspace.name.clone(),
-                                workspaces: RefCell::new(Weak::new()),
-                                focused: workspace.focused,
-                            }
-                        })
-                        .collect();
-
-                    let workspaces = Rc::new(Workspaces {
-                        connection: RefCell::new(connection),
-                        taints: RefCell::new(vec![]),
-                        on_same_screen: workspaces_on_same_screen,
-                        on_other_screen: workspaces_on_other_screen,
-                        focused_index,
-                    });
-
-                    workspaces
-                        .on_same_screen
-                        .iter()
-                        .chain(workspaces.on_other_screen.iter())
-                        .for_each(|ws| *ws.workspaces.borrow_mut() = Rc::downgrade(&workspaces));
-                    return workspaces;
-                }
-                _ => panic!("Got no Workspaces or Outputs from IPC Connection"),
-            }
-        } else {
-            panic!("IPC Connection failed");
-        }
     }
     pub fn swap(&self, ws1: &Workspace, ws2: &Workspace) {
         if ws1.get_number() == ws2.get_number() {
@@ -406,4 +446,33 @@ impl Workspaces {
                 connection.run_command(format!("rename workspace '{}' to '{}'", taint.1, taint.0));
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // #[automock]
+    // pub trait WorkspaceGenerator {
+    //     fn from_sway() -> Rc<Workspaces>;
+    // }
+    #[test]
+    fn mocktest() {
+        // let ctx = MockWorkspaceGenerator::from_sway_context();
+        // ctx.expect().returning(Rc::new(Works))
+        // let mut mock = MockWorkspaceGenerator::new();
+        // mock.expect_from_sway().return_const("abcd".to_owned());
+        // assert_eq!("abcd", mock.from_sway());
+    }
+
+    // #[test]
+    // fn workspaces_are_generated_from_source() {
+    //     // let mock_workspaces = MockWorkspaces::new();
+
+    //     let mock_workspaces = MockWorkspaceGenerator::new();
+    //     mock_workspaces.expect_from_sway().returning
+
+    //     // dbg!(mock_workspaces);
+    //     // let mut
+    // }
 }
