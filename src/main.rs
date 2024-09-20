@@ -185,11 +185,15 @@ fn execute_userinput(argument: String, argument_parameter: Option<String>) -> Re
     Ok(())
 }
 
-fn swap_workspace(wss: &Workspaces, prev: Option<&Workspace>, next: Option<&Workspace>) {
+fn swap_workspace(workspaces: &Workspaces, prev: Option<&Workspace>, next: Option<&Workspace>) {
     match (prev, next) {
-        (Some(prev), Some(next)) => wss.swap(prev, next),
-        (Some(prev), None) => swap_workspace(wss, Some(prev), wss.on_same_screen().first()),
-        (None, Some(next)) => swap_workspace(wss, wss.on_same_screen().last(), Some(next)),
+        (Some(prev), Some(next)) => workspaces.swap(prev, next),
+        (Some(prev), None) => {
+            swap_workspace(workspaces, Some(prev), workspaces.on_same_screen().first())
+        }
+        (None, Some(next)) => {
+            swap_workspace(workspaces, workspaces.on_same_screen().last(), Some(next))
+        }
         (None, None) => {}
     }
 }

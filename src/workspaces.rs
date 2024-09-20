@@ -354,6 +354,9 @@ impl Workspaces {
             .collect()
     }
     pub fn swap(&self, ws1: &Workspace, ws2: &Workspace) {
+        if ws1.basename == ws2.basename {
+            return;
+        }
         if ws1.get_number() == ws2.get_number() {
             self.increase_number(ws1);
         } else {
