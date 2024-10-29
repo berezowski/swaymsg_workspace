@@ -1,15 +1,12 @@
-// use core::panic;
-use mockall::*;
-use mockall::{automock, predicate::*};
-use regex::Regex;
-use std::borrow::Borrow;
+use regex::{Error, Regex};
 use std::cmp::Ordering;
 use std::ops::Deref;
 use std::{
     cell::RefCell,
     rc::{Rc, Weak},
 };
-use swayipc::Connection;
+
+use crate::ipcadapter::{ConnectionProxy, IPCAdapter, IpcResult, OutputProxy, WorkspaceProxy};
 
 #[derive(Debug)]
 pub struct VecOfWorkspaces {
@@ -111,7 +108,7 @@ pub struct Workspace {
 #[derive(Debug)]
 pub struct Workspaces {
     same_screen_focused_index: usize,
-    connection: RefCell<Connection>,
+    connection: RefCell<Box<dyn ConnectionProxy>>,
     taints: RefCell<Vec<(String, String)>>,
     pub on_same_screen: VecOfWorkspaces,
     pub on_other_screen: VecOfWorkspaces,
@@ -147,8 +144,8 @@ impl Workspace {
         }
     }
 
-    pub fn rename(&self, to: &str) {
-        self.workspaces().rename(&self.basename, to);
+    pub fn rename(&self, to: &str) -> IpcResult {
+        self.workspaces().rename(&self.basename, to)
     }
 
     fn slice_basename<'a>(&'a self) -> (usize, &'a str) {
@@ -180,18 +177,18 @@ impl Workspace {
         self.workspaces.borrow().upgrade().unwrap()
     }
     fn find_free_workspace_num(&self) -> usize {
-        self.workspaces()
-            .on_same_screen
+        find_free_workspace_num(&self.workspaces().on_same_screen)
+    }
+}
+
+pub fn find_free_workspace_num(workspaces: &VecOfWorkspaces) -> usize {
+    workspaces
             .iter()
             .rev() // since workspaces are sorted we start from the back to get the highest number
             .filter_map(|workspace| extract_starting_number(&workspace.basename))
             .next()
-            .unwrap_or(0) // default if no other workspace is enumerated
+            .unwrap_or_default() // 0 if no other workspace is enumerated
             + 1 // remember, we want the next free number
-    }
-    // fn find_free_adjecent_workspace_num(&self) -> usize {
-    //     self.workspaces().on_same_screen[self.workspaces().same_screen_focused_index..].iter()
-    // }
 }
 
 pub fn extract_starting_number(source: &str) -> Option<usize> {
@@ -206,119 +203,86 @@ pub fn extract_starting_number(source: &str) -> Option<usize> {
 }
 
 pub fn sort_ipcworkspace(
-    workspace1: &swayipc::Workspace,
-    workspace2: &swayipc::Workspace,
+    workspace1: &Box<dyn WorkspaceProxy>,
+    workspace2: &Box<dyn WorkspaceProxy>,
 ) -> std::cmp::Ordering {
     match (
-        extract_starting_number(&workspace1.name),
-        extract_starting_number(&workspace2.name),
+        extract_starting_number(&workspace1.get_name()),
+        extract_starting_number(&workspace2.get_name()),
     ) {
         (Some(number1), Some(number2)) => match number1.cmp(&number2) {
-            Ordering::Equal => workspace1.name.cmp(&workspace2.name),
+            Ordering::Equal => workspace1.get_name().cmp(&workspace2.get_name()),
             ordering => ordering,
         },
         (Some(_num), None) => Ordering::Greater,
         (None, Some(_num)) => Ordering::Less,
-        (None, None) => workspace1.name.cmp(&workspace2.name),
-    }
-}
-
-// #[automock]
-
-#[automock]
-pub trait WorkspaceGenerator {
-    fn from_sway() -> Rc<Workspaces>;
-}
-
-// trait WorkspaceGenerator {
-//     fn from_sway(&self) -> &str;
-// }
-
-impl WorkspaceGenerator for Workspaces {
-    // #[mockall::expect_trait_object]
-    fn from_sway() -> Rc<Workspaces> {
-        if let Some(mut connection) = Connection::new().ok() {
-            match (
-                Connection::get_workspaces(&mut connection),
-                Connection::get_outputs(&mut connection),
-            ) {
-                (Ok(ipcworkspaces), Ok(ipcoutputs)) => {
-                    return Workspaces::extract_workspaces(connection, ipcworkspaces, ipcoutputs)
-                }
-                _ => panic!("Got no Workspaces or Outputs from IPC Connection"),
-            }
-        } else {
-            panic!("IPC Connection failed");
-        }
+        (None, None) => workspace1.get_name().cmp(&workspace2.get_name()),
     }
 }
 
 impl Workspaces {
-    pub fn new() -> Rc<Workspaces> {
-        Workspaces::from_sway()
+    pub fn new(source: impl IPCAdapter) -> Rc<Workspaces> {
+        Workspaces::extract_workspaces(source.explode())
     }
-    fn map_ipcworkspace_to_workspace(ipc_workspace: &swayipc::Workspace) -> Workspace {
+
+    fn run_command(&self, command: String) -> IpcResult {
+        self.connection.borrow_mut().run_command(command)
+    }
+
+    fn map_workspaceproxy_to_workspace(proxy: &Box<dyn WorkspaceProxy>) -> Workspace {
         Workspace {
-            number: RefCell::new({
-                if ipc_workspace.num == -1 {
-                    None
-                } else {
-                    Some(ipc_workspace.num as usize)
-                }
-            }),
+            number: RefCell::new(proxy.get_num()),
             name: RefCell::new({
-                if ipc_workspace.num == -1 {
-                    None
-                } else {
-                    Some(
-                        ipc_workspace
-                            .name
-                            .trim_start_matches(ipc_workspace.num.to_string().as_str())
-                            .trim()
-                            .to_string(),
-                    )
-                }
+                Some(
+                    proxy
+                        .get_name()
+                        .trim_start_matches(&proxy.get_num().unwrap_or_default().to_string())
+                        .trim()
+                        .to_string(),
+                )
             }),
-            basename: ipc_workspace.name.clone(),
+            basename: proxy.get_name().to_string(),
             workspaces: RefCell::new(Weak::new()),
-            focused: ipc_workspace.focused,
+            focused: proxy.get_focused(),
         }
     }
     pub fn extract_workspaces(
-        connection: swayipc::Connection,
-        mut ipcworkspaces: Vec<swayipc::Workspace>,
-        ipcoutputs: Vec<swayipc::Output>,
+        (connection, mut ipcworkspaces, ipcoutputs): (
+            RefCell<Box<dyn ConnectionProxy>>,
+            Vec<Box<dyn WorkspaceProxy>>,
+            Vec<Box<dyn OutputProxy>>,
+        ),
     ) -> Rc<Workspaces> {
-        ipcworkspaces.sort_by(|a, b| sort_ipcworkspace(&a, &b));
+        ipcworkspaces.sort_by(|a, b| sort_ipcworkspace(a, b));
         let focused_output_name = ipcoutputs
             .iter()
-            .filter(|output| output.focused)
-            .map(|output| output.name.to_owned())
+            .filter(|output| output.get_focused())
+            .map(|output| output.get_name())
             .last()
             .unwrap();
 
         let workspaces_on_other_screen = ipcworkspaces
             .iter()
-            .filter(|ipc_workspace| ipc_workspace.output != focused_output_name)
-            .map(Self::map_ipcworkspace_to_workspace)
+            .filter(|ipc_workspace| ipc_workspace.get_output() != focused_output_name)
+            .map(Self::map_workspaceproxy_to_workspace)
             .collect();
 
         let mut same_screen_focused_index: usize = 0;
         let workspaces_on_same_screen = ipcworkspaces
             .iter()
-            .filter(|ipc_workspace| ipc_workspace.output == focused_output_name)
+            .filter(|ipc_workspace| ipc_workspace.get_output() == focused_output_name)
             .enumerate()
             .map(|(index, ipc_workspace)| {
-                if ipc_workspace.focused {
+                if ipc_workspace.get_focused() {
                     same_screen_focused_index = index
                 };
                 ipc_workspace // remove enumeration from stream
             })
-            .map(Self::map_ipcworkspace_to_workspace)
+            .map(Self::map_workspaceproxy_to_workspace)
             .collect();
 
         let workspaces = Rc::new(Workspaces {
-            connection: RefCell::new(connection),
+            connection: connection,
             taints: RefCell::new(vec![]),
             on_same_screen: workspaces_on_same_screen,
             on_other_screen: workspaces_on_other_screen,
@@ -332,7 +296,7 @@ impl Workspaces {
             .for_each(|ws| *ws.workspaces.borrow_mut() = Rc::downgrade(&workspaces));
         return workspaces;
     }
-    pub fn get_focused<'a>(&'a self) -> &'a Workspace {
+    pub fn get_focused(&self) -> &Workspace {
         self.on_same_screen
             .get(self.same_screen_focused_index as isize)
             .unwrap()
@@ -353,31 +317,45 @@ impl Workspaces {
             .map(|i| i.clone())
             .collect()
     }
-    pub fn swap(&self, ws1: &Workspace, ws2: &Workspace) {
+    pub fn swap(&self, ws1: &Workspace, ws2: &Workspace) -> IpcResult {
         if ws1.basename == ws2.basename {
-            return;
+            return Ok(vec!["".to_string()]);
         }
         if ws1.get_number() == ws2.get_number() {
-            self.increase_number(ws1);
+            self.increase_number(ws1)
         } else {
-            ws1.rename(format!("{} {}", ws2.get_number(), ws1.get_name()).trim());
-            ws2.rename(format!("{} {}", ws1.get_number(), ws2.get_name()).trim());
+            ws1.rename(format!("{} {}", ws2.get_number(), ws1.get_name()).trim())
+                .and_then(|mut ws1_rename_result| {
+                    ws2.rename(format!("{} {}", ws1.get_number(), ws2.get_name()).trim())
+                        .and_then(|ws2_rename_result| {
+                            ws1_rename_result.extend(ws2_rename_result);
+                            Ok(ws1_rename_result)
+                        })
+                })
         }
     }
-    pub fn increase_number(&self, ws: &Workspace) {
-        ws.rename(format!("{} {}", ws.get_number() + 1, ws.get_name()).trim());
+    pub fn increase_number(&self, ws: &Workspace) -> IpcResult {
+        ws.rename(format!("{} {}", ws.get_number() + 1, ws.get_name()).trim())
     }
-    pub fn decrease_number(&self, ws: &Workspace) {
+    pub fn decrease_number(&self, ws: &Workspace) -> IpcResult {
         if ws.get_number() > 1 {
             ws.rename(format!("{} {}", ws.get_number() - 1, ws.get_name()).trim())
-        };
+        } else {
+            Ok(vec!["".to_string()])
+        }
     }
-    pub fn rename(&self, from: &str, to: &str) {
-        let _res = self.connection.borrow_mut().run_command(format!(
+    pub fn rename(&self, from: &str, to: &str) -> IpcResult {
+        self.run_command(format!(
             "rename workspace '{from}' to '{}'",
             self.dedupguard(to.to_string().replace("\u{200B}", ""))
-        ));
+        ))
     }
+    //
+    // Workspaces might temporarily (while swapping e.g.) or permanently (on different
+    // outputs) share the same name.
+    // To avoid conflicts this method appends a zero width space to the name.
+    // This alteration is stored in a kind of history array called 'taints'
+    //
     pub fn dedupguard(&self, desired: String) -> String {
         match self
             .on_same_screen
@@ -395,87 +373,65 @@ impl Workspaces {
             None => desired,
         }
     }
-    pub fn move_container_to(&self, to: &String) {
-        let _ = self
-            .connection
-            .borrow_mut()
-            .run_command(format!("move window to workspace '{}'", to));
+    pub fn move_container_to(&self, to: &String) -> IpcResult {
+        self.run_command(format!("move window to workspace '{}'", to))
     }
-    pub fn select(&self, name: &String) {
-        let _ = self
-            .connection
-            .borrow_mut()
-            .run_command(format!("workspace '{}'", name));
+    pub fn select(&self, name: &String) -> IpcResult {
+        self.run_command(format!("workspace '{}'", name))
     }
-    pub fn select_new(&self, basename: String) {
-        let _ = self
-            .connection
-            .borrow_mut()
-            .run_command(format!("workspace '{}'", self.dedupguard(basename)));
+    //
+    // create and select a new workspace, calling self.dedupguard() is important
+    // because a workspace with this name might already exist on another output
+    //
+    pub fn select_new(&self, basename: String) -> IpcResult {
+        self.run_command(format!("workspace '{}'", self.dedupguard(basename)))
     }
-    pub fn move_to_new(&self, basename: String) {
-        let _ = self.connection.borrow_mut().run_command(format!(
+    pub fn move_to_new(&self, basename: String) -> IpcResult {
+        self.run_command(format!(
             "move window to workspace '{}'",
             self.dedupguard(basename)
-        ));
+        ))
     }
-    pub fn select_or_create_number(&self, number: usize) {
+    //
+    // Select Workspace starting with number: {number} on the same Screen
+    // If no Workspace starts with {number} the method creates and selects a new one
+    //
+    pub fn select_or_create_number(&self, number: usize) -> IpcResult {
         match self
             .on_same_screen()
             .iter()
-            .filter(|ws| ws.basename.starts_with(format!("{number}").as_str()))
+            .filter(|ws| ws.basename.starts_with(&format!("{number}")))
             .last()
         {
             Some(workspace) => self.select(&workspace.basename),
             None => self.select_new(format!("{number}")),
         }
     }
-    pub fn move_container_to_number(&self, number: usize) {
+    //
+    // Move active container the Workspace starting with number: {number} on the same Screen
+    //
+    pub fn move_container_to_number(&self, number: usize) -> IpcResult {
         match self
             .on_same_screen()
             .iter()
-            .filter(|ws| ws.basename.starts_with(format!("{number}").as_str()))
+            .filter(|ws| ws.basename.starts_with(&format!("{number}")))
             .last()
         {
             Some(workspace) => self.move_container_to(&workspace.basename),
-            None => self.move_to_new(format!("{number}")),
+            _ => self.move_to_new(format!("{number}")),
         }
     }
-
-    pub fn cleanup(&self) {
-        let mut connection = self.connection.borrow_mut();
+    //
+    // Remove all 'Zero width spaces' that have been added in order to mitigate duplicate identifiers for workspaces
+    //
+    pub fn cleanup(&self) -> IpcResult {
+        let mut results: Vec<String> = vec![];
         for taint in self.taints.borrow_mut().iter() {
-            let _ =
-                connection.run_command(format!("rename workspace '{}' to '{}'", taint.1, taint.0));
+            match self.run_command(format!("rename workspace '{}' to '{}'", taint.1, taint.0)) {
+                Ok(history) => results.extend(history),
+                Err(_) => (), // Might not be fixable due to duplicate Names on different outputs
+            };
         }
+        Ok(results)
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    // #[automock]
-    // pub trait WorkspaceGenerator {
-    //     fn from_sway() -> Rc<Workspaces>;
-    // }
-    #[test]
-    fn mocktest() {
-        // let ctx = MockWorkspaceGenerator::from_sway_context();
-        // ctx.expect().returning(Rc::new(Works))
-        // let mut mock = MockWorkspaceGenerator::new();
-        // mock.expect_from_sway().return_const("abcd".to_owned());
-        // assert_eq!("abcd", mock.from_sway());
-    }
-
-    // #[test]
-    // fn workspaces_are_generated_from_source() {
-    //     // let mock_workspaces = MockWorkspaces::new();
-
-    //     let mock_workspaces = MockWorkspaceGenerator::new();
-    //     mock_workspaces.expect_from_sway().returning
-
-    //     // dbg!(mock_workspaces);
-    //     // let mut
-    // }
 }
