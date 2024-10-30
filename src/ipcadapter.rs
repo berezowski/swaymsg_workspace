@@ -2,26 +2,25 @@ use core::fmt::Debug;
 use std::any::Any;
 use std::cell::RefCell;
 use std::error::Error;
+use std::fmt;
 use std::rc::Rc;
 
-////////////////////////////////////////////////////////////////////////////////
-// INTERFACES
-////////////////////////////////////////////////////////////////////////////////
-
 pub type IpcResult = Result<Vec<String>, Box<dyn Error>>;
-
-use std::fmt;
 
 #[derive(Debug)]
 pub struct IpcError {
     pub command: String,
 }
-
+impl Error for IpcError {}
 impl fmt::Display for IpcError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Command {} failed", self.command)
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// INTERFACES
+////////////////////////////////////////////////////////////////////////////////
 
 pub trait ConnectionProxy {
     fn run_command(&mut self, payload: String) -> IpcResult;
@@ -70,14 +69,12 @@ impl Debug for dyn OutputProxy {
 
 pub trait IPCAdapter {
     ///
-    /// asdfasdfasfdafdsasdf
+    /// Provides Workspaces, Outputs, as well as a connection from/to sway
     ///
-    /// # Examples
-    ///
-    /// ```
-    /// # #![allow(unused_mut)]
-    /// ```
     fn new() -> impl IPCAdapter;
+    ///
+    /// Breaks up ipcAdapter into objects and passing on ownership of those
+    ///
     fn explode(
         self,
     ) -> (
@@ -88,9 +85,21 @@ pub trait IPCAdapter {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// TESTING IMPLEMENTATION
+// # TESTING IMPLEMENTATION
 ////////////////////////////////////////////////////////////////////////////////
-
+///
+/// Connection implementation for testing
+///
+/// # Examples
+///
+/// ```
+/// use std::rc::Rc;
+/// use swaymsg_workspace::ipcadapter::MockConnection;
+///
+/// let mockconnection = MockConnection {
+///    commandhistory: Rc::new(vec![].into()),
+/// };
+/// ```
 #[derive(Debug)]
 pub struct MockConnection {
     pub commandhistory: Rc<RefCell<Vec<String>>>,
@@ -106,6 +115,21 @@ impl ConnectionProxy for MockConnection {
     }
 }
 
+///
+/// Workspace implementation for testing
+///
+/// # Examples
+///
+/// ```
+/// use swaymsg_workspace::ipcadapter::MockWorkspace;
+///
+/// let mockworkspace = MockWorkspace {
+///     num: Some(1),
+///     name: "Foo".to_string(),
+///     output: "eDP-1".to_string(),
+///     focused: true,
+/// };
+/// ```
 #[derive(Debug)]
 pub struct MockWorkspace {
     pub num: Option<usize>,
@@ -129,6 +153,19 @@ impl WorkspaceProxy for MockWorkspace {
     }
 }
 
+///
+/// Output implementation for testing
+///
+/// # Examples
+///
+/// ```
+/// use swaymsg_workspace::ipcadapter::MockOutput;
+///
+/// let mockoutput = MockOutput {
+///     name: "eDP-1".to_string(),
+///     focused: true,
+/// };
+/// ```
 #[derive(Debug)]
 pub struct MockOutput {
     pub name: String,
@@ -149,7 +186,23 @@ pub struct MockIPCAdapter {
     pub outputs: Vec<Box<dyn OutputProxy>>,
 }
 
+///
+/// IPCAdapter implementation for testing
+///
+/// # Examples
+///
+/// ```
+/// use swaymsg_workspace::ipcadapter::MockIPCAdapter;
+/// use crate::swaymsg_workspace::ipcadapter::IPCAdapter;
+///
+/// let mockipcadapter = MockIPCAdapter::new();
+/// ```
 impl IPCAdapter for MockIPCAdapter {
+    ///
+    /// ### constructs a basic mocked environment:
+    /// - 2 Workspaces "Foo" and "Bar"
+    /// - 1 Output "eDP-1"
+    ///
     fn new() -> impl IPCAdapter {
         MockIPCAdapter {
             connection: RefCell::new(Box::new(MockConnection {
@@ -160,7 +213,7 @@ impl IPCAdapter for MockIPCAdapter {
                     num: Some(1),
                     name: "Foo".to_string(),
                     output: "eDP-1".to_string(),
-                    focused: false,
+                    focused: true,
                 }),
                 Box::new(MockWorkspace {
                     num: Some(2),
@@ -168,65 +221,26 @@ impl IPCAdapter for MockIPCAdapter {
                     output: "eDP-1".to_string(),
                     focused: false,
                 }),
-                Box::new(MockWorkspace {
-                    num: Some(3),
-                    name: "Bar".to_string(),
-                    output: "eDP-1".to_string(),
-                    focused: false,
-                }),
-                Box::new(MockWorkspace {
-                    num: Some(3),
-                    name: "Bar".to_string(),
-                    output: "HDMI-1".to_string(),
-                    focused: false,
-                }),
-                Box::new(MockWorkspace {
-                    num: None,
-                    name: "Span2".to_string(),
-                    output: "eDP-1".to_string(),
-                    focused: false,
-                }),
-                Box::new(MockWorkspace {
-                    num: None,
-                    name: "Span2".to_string(),
-                    output: "HDMI-1".to_string(),
-                    focused: false,
-                }),
-                Box::new(MockWorkspace {
-                    num: None,
-                    name: "Span3".to_string(),
-                    output: "eDP-1".to_string(),
-                    focused: true,
-                }),
-                Box::new(MockWorkspace {
-                    num: None,
-                    name: "Span3".to_string(),
-                    output: "HDMI-1".to_string(),
-                    focused: false,
-                }),
-                Box::new(MockWorkspace {
-                    num: None,
-                    name: "Span3".to_string(),
-                    output: "HDMI-2".to_string(),
-                    focused: true,
-                }),
             ],
-            outputs: vec![
-                Box::new(MockOutput {
-                    focused: false,
-                    name: "eDP-1".to_string(),
-                }),
-                Box::new(MockOutput {
-                    focused: true,
-                    name: "HDMI-1".to_string(),
-                }),
-                Box::new(MockOutput {
-                    focused: false,
-                    name: "HDMI-2".to_string(),
-                }),
-            ],
+            outputs: vec![Box::new(MockOutput {
+                focused: true,
+                name: "eDP-1".to_string(),
+            })],
         }
     }
+
+    ///
+    /// Breaks up ipcAdapter into objects and passing on ownership of those
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use swaymsg_workspace::ipcadapter::MockIPCAdapter;
+    /// use crate::swaymsg_workspace::ipcadapter::IPCAdapter;
+    ///
+    /// let ipcadapter = MockIPCAdapter::new();
+    /// let (connection, ipcworkspaces, ipcoutputs) = ipcadapter.explode();
+    /// ```
     fn explode(
         self,
     ) -> (
@@ -239,7 +253,7 @@ impl IPCAdapter for MockIPCAdapter {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// PROD IMPLEMENTATION
+// # PROD IMPLEMENTATION
 ////////////////////////////////////////////////////////////////////////////////
 
 #[derive(Debug)]

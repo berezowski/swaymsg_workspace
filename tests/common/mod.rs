@@ -5,7 +5,7 @@ use swaymsg_workspace::{
     workspaces::Workspaces,
 };
 
-pub fn setup_4workspaces_across_3outputs() -> (Rc<Workspaces>, Rc<RefCell<Vec<String>>>) {
+pub fn setup_4_workspaces_across_3_outputs() -> (Rc<Workspaces>, Rc<RefCell<Vec<String>>>) {
     let commands = Rc::new(RefCell::new(vec![]));
     let connection: RefCell<Box<dyn ConnectionProxy>> = RefCell::new(Box::new(MockConnection {
         commandhistory: commands.clone(),

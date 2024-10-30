@@ -2,7 +2,7 @@ use core::panic;
 use ipcadapter::IpcResult;
 use std::rc::Rc;
 use workspaces::extract_starting_number;
-use workspaces::find_free_workspace_num;
+use workspaces::find_free_adjecent_workspace_num;
 use workspaces::Workspace;
 use workspaces::Workspaces;
 pub mod ipcadapter;
@@ -166,7 +166,7 @@ pub fn execute_userinput(
                 Some(_number) => workspaces.move_container_to(&workspacename),
                 None => workspaces.move_container_to(&format!(
                     "{} {}",
-                    find_free_workspace_num(&workspaces.on_same_screen()),
+                    find_free_adjecent_workspace_num(&workspaces.on_same_screen()),
                     &workspacename
                 )),
             },

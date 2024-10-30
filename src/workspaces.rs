@@ -1,4 +1,4 @@
-use regex::{Error, Regex};
+use regex::Regex;
 use std::cmp::Ordering;
 use std::ops::Deref;
 use std::{
@@ -8,6 +8,12 @@ use std::{
 
 use crate::ipcadapter::{ConnectionProxy, IPCAdapter, IpcResult, OutputProxy, WorkspaceProxy};
 
+////////////////////////////////////////////////////////////////////////////////
+// # Custom Vector for Workspaces
+////////////////////////////////////////////////////////////////////////////////
+///
+/// Workspace conscious Vector featuring convenience methods
+///
 #[derive(Debug)]
 pub struct VecOfWorkspaces {
     items: Vec<Rc<Workspace>>,
@@ -66,7 +72,7 @@ impl VecOfWorkspaces {
             }
         }
     }
-    pub fn focused(&self) -> Option<&Workspace> {
+    pub fn get_focused(&self) -> Option<&Workspace> {
         match &self.focused {
             Some(rc) => Some(&*rc),
             None => None,
@@ -96,6 +102,12 @@ impl VecOfWorkspaces {
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// # Custom Workspaces
+////////////////////////////////////////////////////////////////////////////////
+///
+///  
+///
 #[derive(Debug)]
 pub struct Workspace {
     number: RefCell<Option<usize>>,
@@ -115,8 +127,11 @@ pub struct Workspaces {
 }
 
 impl Workspace {
+    ///
+    /// returns the name if present
+    /// otherwise extracts the name from the basename
+    ///
     pub fn get_name(&self) -> String {
-        self.find_free_workspace_num();
         let name = &mut *self.name.borrow_mut();
         match name {
             Some(name) => name.clone(),
@@ -130,6 +145,10 @@ impl Workspace {
         }
     }
 
+    ///
+    /// returns the workspacenumber if present
+    /// otherwise extracts the workspacenumber from the basename
+    ///
     pub fn get_number(&self) -> usize {
         let number = &mut *self.number.borrow_mut();
         match number {
@@ -144,14 +163,24 @@ impl Workspace {
         }
     }
 
+    ///
+    /// hard rename
+    ///
     pub fn rename(&self, to: &str) -> IpcResult {
         self.workspaces().rename(&self.basename, to)
     }
 
+    ///
+    /// convenience wrapper for extract name/number and validate name/number
+    ///
     fn slice_basename<'a>(&'a self) -> (usize, &'a str) {
         self.cast_and_validate_fragments(self.extract_fragments(&self.basename))
     }
 
+    ///
+    /// always returns a valid workspacenumber and name
+    /// if no number is present use a new unused workspacenumber
+    ///
     fn cast_and_validate_fragments<'a>(
         &'a self,
         fragments: (&'a str, &'a str),
@@ -165,6 +194,9 @@ impl Workspace {
         (number, name)
     }
 
+    ///
+    /// takes a basename and splits the number from the name
+    ///
     fn extract_fragments<'a>(&self, wsname: &'a str) -> (&'a str, &'a str) {
         let capture_number_and_name = Regex::new(r"^(?<number>\d*)\s*(?<name>.*)").unwrap();
         let caps = capture_number_and_name.captures(&wsname).unwrap();
@@ -181,6 +213,9 @@ impl Workspace {
     }
 }
 
+///
+/// get the next unused workspace number from all passed workspaces
+///
 pub fn find_free_workspace_num(workspaces: &VecOfWorkspaces) -> usize {
     workspaces
             .iter()
@@ -189,6 +224,50 @@ pub fn find_free_workspace_num(workspaces: &VecOfWorkspaces) -> usize {
             .next()
             .unwrap_or_default() // 0 if no other workspace is enumerated
             + 1 // remember, we want the next free number
+}
+
+///
+/// get the next unused workspace number from orkspaces right of the focused one
+///
+pub fn find_free_adjecent_workspace_num(workspaces: &VecOfWorkspaces) -> usize {
+    let start = index_of_focused_workspace(workspaces);
+    let startnumber = workspaces
+        .get_focused()
+        .and_then(|focused| extract_starting_number(&focused.basename))
+        .unwrap_or_default();
+
+    let mut workspaces_right_of_current_number = workspaces.split_at(start).1.iter();
+    for trynumber in startnumber..=100 {
+        if let Some(adjecent_workspace_number) = workspaces_right_of_current_number
+            .next()
+            .map(|workspace| extract_starting_number(&workspace.basename))
+            .and_then(|num| num)
+        {
+            // adjecent workspace to the right has a number, see if it collides with the number the new workspace would get
+            if trynumber < adjecent_workspace_number {
+                return trynumber;
+            }
+        } else {
+            // adjecent workspace it not numbered, so we can assume our number is not used yet.
+            return trynumber;
+        }
+    }
+    find_free_workspace_num(workspaces) // if by some miracle there are more than 100 workspaces fall back to getting the last number + 1
+}
+
+///
+///
+///
+pub fn index_of_focused_workspace(workspaces: &VecOfWorkspaces) -> usize {
+    workspaces
+        .get_focused()
+        .and_then(|focused| {
+            workspaces
+                .iter()
+                .position(|iter| iter.basename == focused.basename)
+                .take()
+        })
+        .unwrap_or_default()
 }
 
 pub fn extract_starting_number(source: &str) -> Option<usize> {

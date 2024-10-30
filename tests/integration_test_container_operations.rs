@@ -2,7 +2,7 @@ mod common;
 
 #[test]
 fn test_moving_container() {
-    let (workspaces, commandhistory) = common::setup_4workspaces_across_3outputs();
+    let (workspaces, commandhistory) = common::setup_4_workspaces_across_3_outputs();
     let result = swaymsg_workspace::execute_userinput(
         workspaces,
         String::from("move_container_to_workspace_number"),
