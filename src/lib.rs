@@ -8,13 +8,31 @@ use workspaces::Workspaces;
 pub mod ipcadapter;
 pub mod workspaces;
 
+pub enum Command {
+    Next,
+    Prev,
+    SwapWithPrev,
+    SwapWithNext,
+    Increase,
+    Decrease,
+    RenameTo,
+    Number,
+    MoveContainerToWorkspaceNumber,
+    Select,
+    PrintFocusedName,
+    PrintFocusedNumber,
+    RofiSelectWorkspace,
+    RofiMoveWindow,
+    Usage,
+}
+
 pub fn execute_userinput(
     workspaces: Rc<Workspaces>,
-    argument: String,
+    command: Command,
     argument_parameter: Option<String>,
 ) -> IpcResult {
-    match argument.as_str() {
-        "next" => match &mut workspaces
+    match command {
+        Command::Next => match &mut workspaces
             .on_same_screen()
             .next_of(workspaces.focused_index())
         {
@@ -32,7 +50,7 @@ pub fn execute_userinput(
                 None => workspaces.select(&workspaces.on_same_screen().first().unwrap().basename),
             },
         },
-        "prev" => {
+        Command::Prev => {
             match &workspaces
                 .on_same_screen()
                 .prev_of(workspaces.focused_index())
@@ -54,21 +72,21 @@ pub fn execute_userinput(
                 },
             }
         }
-        "swap_with_next" => swap_workspace(
+        Command::SwapWithNext => swap_workspace(
             &workspaces,
             workspaces.on_same_screen().get(workspaces.focused_index()),
             workspaces
                 .on_same_screen()
                 .next_of(workspaces.focused_index()),
         ),
-        "swap_with_prev" => swap_workspace(
+        Command::SwapWithPrev => swap_workspace(
             &workspaces,
             workspaces
                 .on_same_screen()
                 .prev_of(workspaces.focused_index()),
             workspaces.on_same_screen().get(workspaces.focused_index()),
         ),
-        "increase" => match (
+        Command::Increase => match (
             workspaces.get_focused(),
             workspaces
                 .on_same_screen()
@@ -81,7 +99,7 @@ pub fn execute_userinput(
             (ws1, Some(ws2)) => workspaces.swap(ws1, ws2),
             (ws, None) => workspaces.increase_number(ws),
         },
-        "decrease" => {
+        Command::Decrease => {
             match (
                 workspaces
                     .on_same_screen()
@@ -96,7 +114,7 @@ pub fn execute_userinput(
                 (None, ws) => workspaces.decrease_number(ws),
             }
         }
-        "rename_to" => {
+        Command::RenameTo => {
             if let Some(new_name) = argument_parameter {
                 workspaces.get_focused().rename(&format!(
                     "{} {}",
@@ -109,7 +127,7 @@ pub fn execute_userinput(
                     .rename(&format!("{}", workspaces.get_focused().get_number()))
             }
         }
-        "number" => match argument_parameter {
+        Command::Number => match argument_parameter {
             Some(number) => {
                 if let Ok(number) = number.parse::<usize>() {
                     workspaces.select_or_create_number(number)
@@ -120,7 +138,7 @@ pub fn execute_userinput(
             _ => panic!("desired workspace Number missing"),
         },
 
-        "move_container_to_workspace_number" => match argument_parameter {
+        Command::MoveContainerToWorkspaceNumber => match argument_parameter {
             Some(number) => {
                 if let Ok(number) = number.parse::<usize>() {
                     workspaces.move_container_to_number(number)
@@ -130,27 +148,27 @@ pub fn execute_userinput(
             }
             _ => panic!("desired workspace Number missing"),
         },
-        "select" => {
+        Command::Select => {
             if let Some(workspace) = argument_parameter {
                 workspaces.select(&workspace)
             } else {
                 panic!("Workspace missing")
             }
         }
-        "print_focused_name" => {
+        Command::PrintFocusedName => {
             println!("{}", workspaces.get_focused().get_name());
             // Ok(vec![workspaces.get_focused().get_name().to_string()])
             Ok(vec!["nonipc: print_focused_name".to_string()])
         }
-        "print_focused_number" => {
+        Command::PrintFocusedNumber => {
             println!("{}", workspaces.get_focused().get_number());
             // Ok(vec![workspaces.get_focused().get_number().to_string()])
             Ok(vec!["nonipc: print_focused_number".to_string()])
         }
-        "rofi_select_workspace" => match argument_parameter {
+        Command::RofiSelectWorkspace => match argument_parameter {
             Some(workspacename) => execute_userinput(
                 workspaces.clone(),
-                "select".to_string(),
+                Command::Select,
                 Some(workspacename),
             ),
             None => {
@@ -161,7 +179,7 @@ pub fn execute_userinput(
                 Ok(vec!["nonipc: rofi_select_workspace".to_string()])
             }
         },
-        "rofi_move_window" => match argument_parameter {
+        Command::RofiMoveWindow => match argument_parameter {
             Some(workspacename) => match extract_starting_number(&workspacename) {
                 Some(_number) => workspaces.move_container_to(&workspacename),
                 None => workspaces.move_container_to(&format!(
@@ -178,7 +196,7 @@ pub fn execute_userinput(
                 Ok(vec!["nonipc: rofi_move_window".to_string()])
             }
         },
-        _ => {
+        Command::Usage => {
             eprintln!("valid arguments: [ next prev swap_with_prev swap_with_next increase decrease rename_to select print_focused_name print_focused_number rofi_select_workspace rofi_move_window ]. ");
             Ok(vec!["nonipc: Instructions printed".to_string()])
         }
