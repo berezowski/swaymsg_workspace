@@ -57,7 +57,7 @@ calling Sway's "workspace next" would switch focus to
 
 ## Features
 - [next/prev command to select adjacent Workspaces on the same monitor, (unlike sway's 'workspace next' command) ](#select-workspace)
-- [swap current workspace with previous / next workspace on the currently active monitor](#select-workspace)
+- [swap current workspace with previous / next workspace on the currently active monitor](#swap-workspace)
 - [reorder workspaces by increasing/decreasing workspace Number](#index-workspace)
 - [rename a workspace without changing the workspace Number](#rename-workspace)
 - rename/select workspace via rofi
