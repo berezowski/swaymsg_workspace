@@ -349,8 +349,8 @@ https://github.com/user-attachments/assets/7169c4ec-6c15-4ab4-a7ec-35b221379996
    bindsym Mod1+Ctrl+Shift+p exec ~/.cargo/bin/swaymsg_workspace swap_with_prev
 
    ### swaymsg_workspace increase / decrease number
-   bindsym Mod1+Ctrl+f exec ~/.cargo/bin/swaymsg_workspace decrease
-   bindsym Mod1+Ctrl+g exec ~/.cargo/bin/swaymsg_workspace increase
+   bindsym Mod1+Ctrl+v exec ~/.cargo/bin/swaymsg_workspace decrease
+   bindsym Mod1+Ctrl+Shift+v exec ~/.cargo/bin/swaymsg_workspace increase
 
    ### swaymsg_workspace select by number
    bindsym Mod1+Ctrl+0 exec ~/.cargo/bin/swaymsg_workspace number 10
