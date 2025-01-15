@@ -36,8 +36,8 @@ block-beta
       space:6    
     end
   a1 -- "next" --> b1
-  style A1 fill:#ccc,stroke:#288,stroke-width:4px,color:#000
-  style D1 fill:#ccc,stroke:#288,stroke-width:4px,color:#000
+  style A1 stroke:#288,stroke-width:4px
+  style D1 stroke:#288,stroke-width:4px
 ```
 
 ##### Sway stock behaviour:
@@ -91,9 +91,9 @@ block-beta
   end
   a -- "next" --> b
   b -- "next" --> c
-  style B fill:#ccc,stroke:#288,stroke-width:4px,color:#000
-  style F fill:#ccc,stroke:#288,stroke-width:4px,color:#000
-  style G fill:#ccc,stroke:#288,stroke-width:4px,color:#000
+  style B stroke:#288,stroke-width:4px
+  style F stroke:#288,stroke-width:4px
+  style G stroke:#288,stroke-width:4px
 ```
 ```
 ~/.cargo/bin/swaymsg_workspace prev
@@ -113,8 +113,8 @@ block-beta
     F["8 messages"]
   end
   a -- "prev" --> b
-  style B fill:#ccc,stroke:#288,stroke-width:4px,color:#000
-  style D fill:#ccc,stroke:#288,stroke-width:4px,color:#000
+  style B stroke:#288,stroke-width:4px
+  style D stroke:#288,stroke-width:4px
 
 ```
 ##### Swap workspace
@@ -143,9 +143,9 @@ block-beta
   end
   a -- "swap_with_next"--> b
   b -- "swap_with_next"--> c
-  style B fill:#ccc,stroke:#288,stroke-width:4px,color:#000
-  style F fill:#ccc,stroke:#288,stroke-width:4px,color:#000
-  style G fill:#ccc,stroke:#288,stroke-width:4px,color:#000
+  style B stroke:#288,stroke-width:4px
+  style F stroke:#288,stroke-width:4px
+  style G stroke:#288,stroke-width:4px
 ```
 ```
 ~/.cargo/bin/swaymsg_workspace swap_with_prev
@@ -165,8 +165,8 @@ block-beta
     F["8 messages"]
   end
   a -- "swap_with_prev" --> b
-  style B fill:#ccc,stroke:#288,stroke-width:4px,color:#000
-  style D fill:#ccc,stroke:#288,stroke-width:4px,color:#000
+  style B stroke:#288,stroke-width:4px
+  style D stroke:#288,stroke-width:4px
 ```
 ##### Index workspace
 ```
@@ -194,9 +194,9 @@ block-beta
   end
   a -- "increase"--> b
   b -- "increase"--> c
-  style B fill:#ccc,stroke:#288,stroke-width:4px,color:#000
-  style E fill:#ccc,stroke:#288,stroke-width:4px,color:#000
-  style I fill:#ccc,stroke:#288,stroke-width:4px,color:#000
+  style B stroke:#288,stroke-width:4px
+  style E stroke:#288,stroke-width:4px
+  style I stroke:#288,stroke-width:4px
 ```
 ```
 ~/.cargo/bin/swaymsg_workspace decrease
@@ -216,8 +216,8 @@ block-beta
     F["8 messages"]
   end
   a -- "decrease"--> b
-  style B fill:#ccc,stroke:#288,stroke-width:4px,color:#000
-  style E fill:#ccc,stroke:#288,stroke-width:4px,color:#000
+  style B stroke:#288,stroke-width:4px
+  style E stroke:#288,stroke-width:4px
 
 ```
 ##### Rename workspace
@@ -239,8 +239,8 @@ block-beta
     F["8 messages"]
   end
   a -- "rename_to movies"--> b
-  style A fill:#ccc,stroke:#288,stroke-width:4px,color:#000
-  style D fill:#ccc,stroke:#288,stroke-width:4px,color:#000
+  style A stroke:#288,stroke-width:4px
+  style D stroke:#288,stroke-width:4px
 ```
 ##### Select workspace while multiple monitors are connected
 ```
@@ -274,8 +274,8 @@ block-beta
       space:6    
     end
   a1 -- "number 5" --> b1
-  style B1 fill:#ccc,stroke:#288,stroke-width:4px,color:#000
-  style C1 fill:#ccc,stroke:#288,stroke-width:4px,color:#000
+  style B1 stroke:#288,stroke-width:4px
+  style C1 stroke:#288,stroke-width:4px
 ```
 ##### Move window to workspace number while multiple monitors are connected
 ```
@@ -309,8 +309,8 @@ block-beta
       space:6    
     end
   a1 -- "move_container_to_workspace_number 5" --> b1
-  style B1 fill:#ccc,stroke:#288,stroke-width:4px,color:#000
-  style E1 fill:#ccc,stroke:#288,stroke-width:4px,color:#000
+  style B1 stroke:#288,stroke-width:4px
+  style E1 stroke:#288,stroke-width:4px
 ```
 
 ___
