@@ -40,20 +40,65 @@ block-beta
   style D1 stroke:#288,stroke-width:4px
 ```
 
-##### Sway stock behaviour:
+##### Comparison to Sway stock behaviour:
 
-Given the workspaces:
-| Monitor1 | Monitor1 |Monitor2|
-| --- | --- | --- |
-| ▫ 6 work | ▪ 8 messages|▫ 7 music
+<table style="margin-left: auto; margin-right: auto;">
+<tr><th> workspace (sway command) </th><th> swaymsg_workspace (this program) </th></tr>
+<tr><td>
+&nbsp;&nbsp;&nbsp;
 
+<table style="margin-left: auto; margin-right: auto;">
+<tr><th colspan=2>Monitor1 </th><th> Monitor2 </th></tr>
+<tr><td align="center"><ins>▫ 6 work </ins></td><td align="center"><sup>  ▪ 8 messages </sup></td><td align="center"><sup>▫ 7 music</sup></td></tr>
+<tr><td colspan=3 align="center">
+  
+  ```next```
+  
+</td></tr>
+<tr><td align="center"><sup>▫ 6 work </sup></td><td align="center"><sup>  ▪ 8 messages </sup></td><td align="center"><ins>▫ 7 music</ins></ins></tr>
+<tr><td colspan=3 align="center">
+  
+  ```next```
+  
+  </td></tr>
+<tr><td align="center"><sup>▫ 6 work </sup></td><td align="center"><ins>  ▪ 8 messages </ins></td><td align="center"><sup>▫ 7 music</sup></td></tr>
+<tr style="text-align: center; border: none!important;"><td colspan=3 style="text-align: center; border: none!important;" align="center">
+  
+  ```next```
+  
+</td></tr>
+<tr><td align="center"><ins>▫ 6 work </ins></td><td align="center"><sup>  ▪ 8 messages </sup></td><td align="center"><sup>▫ 7 music</sup></td></tr>
+</table>
 
-with ```▪ 8 messages``` *Monitor 1* being focused
+&nbsp;&nbsp;&nbsp;
+</td><td>
+&nbsp;&nbsp;&nbsp;
 
-calling Sway's "workspace next" would switch focus to
+<table style="margin-left: auto; margin-right: auto;">
+<tr><th colspan=2>Monitor1 </th><th> Monitor2 </th></tr>
+<tr><td align="center"><ins>▫ 6 work </ins></td><td align="center"><sup>  ▪ 8 messages </sup></td><td align="center"><sup>▫ 7 music</sup></td></tr>
+<tr><td colspan=3 align="center">
+  
+  ```next```
+  
+</td></tr>
+<tr><td align="center"><sup>▫ 6 work </sup></td><td align="center"><ins>  ▪ 8 messages </ins></td><td align="center"><sup>▫ 7 music</sup></td></tr>
+<tr style="text-align: center; border: none!important;"><td colspan=3 style="text-align: center; border: none!important;" align="center">
+  
+  ```next```
+  
+</td></tr>
+<tr><td align="center"><ins>▫ 6 work </ins></td><td align="center"><sup>  ▪ 8 messages </sup></td><td align="center"><sup>▫ 7 music</sup></td></tr>
+<tr style="text-align: center; border: none!important;"><td colspan=3 style="text-align: center; border: none!important;" align="center">
+  
+  ```next```
+  
+</td></tr>
+<tr><td align="center"><sup>▫ 6 work </sup></td><td align="center"><ins>  ▪ 8 messages </ins></td><td align="center"><sup>▫ 7 music</sup></td></tr>
+</table>
 
-
-```▪ 6 work``` *Monitor 1* &nbsp;&nbsp;&nbsp;&nbsp; "workspace next" &nbsp;&nbsp;&nbsp;&nbsp;```▪ 7 music``` *Monitor 2* &nbsp;&nbsp;&nbsp;&nbsp; "workspace next" &nbsp;&nbsp;&nbsp;&nbsp;```▪ 8 messages``` *Monitor 1*
+&nbsp;&nbsp;&nbsp;
+</td></tr> </table>
 
 ## Features
 - [next/prev command to select adjacent Workspaces on the same monitor, (unlike sway's 'workspace next' command) ](#select-workspace)
