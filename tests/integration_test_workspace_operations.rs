@@ -6,14 +6,14 @@ fn test_selecting_workspace() {
 	// select next workspace on same screen
 	let (workspaces, commandhistory) = common::setup_4_workspaces_across_3_outputs();
 	let result = swaymsg_workspace::execute_userinput(workspaces, Command::Next, None);
-	let expected = "workspace '1 Foo'";
+	let expected = "workspace '1 Foo'; focus child";
 	assert_eq!(&result.ok().unwrap().join(" | "), &expected);
 	assert_eq!(&commandhistory.take().join(" | "), &expected);
 
 	// select next workspace on same screen (wrap to start)
 	let (workspaces, commandhistory) = common::setup_4_workspaces_across_3_outputs();
 	let result = swaymsg_workspace::execute_userinput(workspaces, Command::Next, None);
-	let expected = "workspace '1 Foo'";
+	let expected = "workspace '1 Foo'; focus child";
 	assert_eq!(&result.ok().unwrap().join(" | "), &expected);
 	assert_eq!(&commandhistory.take().join(" | "), &expected);
 
@@ -21,7 +21,7 @@ fn test_selecting_workspace() {
 	let (workspaces, commandhistory) = common::setup_4_workspaces_across_3_outputs();
 	let result =
 		swaymsg_workspace::execute_userinput(workspaces, Command::Number, Some("1".to_string()));
-	let expected = "workspace '1 Foo'";
+	let expected = "workspace '1 Foo'; focus child";
 	assert_eq!(&result.ok().unwrap().join(" | "), &expected);
 	assert_eq!(&commandhistory.take().join(" | "), &expected);
 }

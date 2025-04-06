@@ -438,8 +438,13 @@ impl Workspaces {
 		self.run_command(format!("move window to workspace '{}'", to))
 	}
 	pub fn select(&self, name: &String) -> IpcResult {
-		self.run_command(format!("workspace '{}'", name))
+		self.run_command(format!("workspace '{}'; focus child", name)) 
+		// focus child: while a overlay window is visible (e.g. rofi), moving  windows 
+		// out of a stack does not select an adjacent window. Istead the parent is focused. 
+		// Afterwards, selecting the child when Switching to any workspace mitigates this behaviour. 
+		// If this 'fix' does not work for you: please open an issue in github.
 	}
+	
 	//
 	// create and select a new workspace, calling self.dedupguard() is important
 	// because a workspace with this name might already exist on another output
