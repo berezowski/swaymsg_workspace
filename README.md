@@ -81,21 +81,20 @@ When using multiple monitors, Sway’s built-in `workspace next` jumps to a diff
 
 &nbsp;&nbsp;&nbsp;
 </td></tr> </table>
+
 ---
 
 ## ✨ Features Overview
 
 | Feature | What it does |
 |--------|--------------|
-| [`next`, `prev`](#select-workspace) | Go to next/previous workspace on the same monitor |
-| [`swap_with_next`, `swap_with_prev`](#swap-workspace) | Reorder current workspace left/right on the same monitor |
-| [`increase`, `decrease`](#index-workspace) | Reassign workspace to next/previous number |
-| [`rename_to <name>`](#rename-workspace) | Rename a workspace but keep its number |
-| [`number <n>`](#select-workspace-while-multiple-monitors-are-connected) | Go to workspace `<n>` on the same monitor |
-| [`move_container_to_workspace_number <n>`](#move-window-to-workspace-number-while-multiple-monitors-are-connected) | Move focused window to workspace `<n>` on same monitor |
+| `next`, `prev` | [Go to next/previous workspace on the same monitor](#select-workspace) |
+| `swap_with_next`, `swap_with_prev` | [Reorder current workspace left/right on the same monitor](#swap-workspace) |
+| `increase`, `decrease` | [Reassign workspace to next/previous number](#index-workspace) |
+| `rename_to <name>` | [Rename a workspace but keep its number](#rename-workspace) |
+| `number <n>` | [Go to workspace `<n>` on the same monitor](#select-workspace-while-multiple-monitors-are-connected) |
+| `move_container_to_workspace_number <n>` | [Move focused window to workspace `<n>` on same monitor](#move-window-to-workspace-number-while-multiple-monitors-are-connected) |
 | Rofi integration | Rename or select workspace using a menu |
-
----
 
 ##### Select workspace
 ```
