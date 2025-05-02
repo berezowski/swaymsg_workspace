@@ -21,7 +21,11 @@ When using multiple monitors, Sway’s built-in `workspace next` jumps to a diff
 ##### Comparison to Sway stock behaviour:
 
 <table style="margin-left: auto; margin-right: auto;">
-<tr><th> workspace (sway command) </th><th> swaymsg_workspace (this program) </th></tr>
+<tr><th> 
+  Default Sway (moves across monitors)
+</th><th> 
+  swaymsg_workspace (stays on current monitor)
+</th></tr>
 <tr><td>
 &nbsp;&nbsp;&nbsp;
 
@@ -77,16 +81,21 @@ When using multiple monitors, Sway’s built-in `workspace next` jumps to a diff
 
 &nbsp;&nbsp;&nbsp;
 </td></tr> </table>
+---
 
-## Features
-- [next/prev command to select adjacent Workspaces on the same monitor, (unlike sway's 'workspace next' command) ](#select-workspace)
-- [swap current workspace with previous / next workspace on the currently active monitor](#swap-workspace)
-- [reorder workspaces by increasing/decreasing workspace Number](#index-workspace)
-- [rename a workspace without changing the workspace Number](#rename-workspace)
-- rename/select workspace via rofi
-- [select workspace by number on same output](#select-workspace-while-multiple-monitors-are-connected)
-- [move window to workspace on same output](#move-window-to-workspace-number-while-multiple-monitors-are-connected)
+## ✨ Features Overview
 
+| Feature | What it does |
+|--------|--------------|
+| [`next`, `prev`](#select-workspace) | Go to next/previous workspace on the same monitor |
+| [`swap_with_next`, `swap_with_prev`](#swap-workspace) | Reorder current workspace left/right on the same monitor |
+| [`increase`, `decrease`](#index-workspace) | Reassign workspace to next/previous number |
+| [`rename_to <name>`](#rename-workspace) | Rename a workspace but keep its number |
+| [`number <n>`](#select-workspace-while-multiple-monitors-are-connected) | Go to workspace `<n>` on the same monitor |
+| [`move_container_to_workspace_number <n>`](#move-window-to-workspace-number-while-multiple-monitors-are-connected) | Move focused window to workspace `<n>` on same monitor |
+| Rofi integration | Rename or select workspace using a menu |
+
+---
 
 ##### Select workspace
 ```
@@ -336,32 +345,33 @@ block-beta
   style E1 stroke:#288,stroke-width:4px
 ```
 
-___
-## Demo
-https://github.com/user-attachments/assets/7169c4ec-6c15-4ab4-a7ec-35b221379996
+---
 
-## Installation
+## 🚀 Quick Start
 
-1. #### install Rust
-   https://www.rust-lang.org/tools/install
+#### 1. install Rust
 
-   The Rust installer comes with 'rustup' and 'cargo'.
 
-2. #### switch to rust nightly channel
-   ```
+   Visit: https://www.rust-lang.org/tools/install
+   
+   Rust includes ```cargo``` and ```rustup```.
+
+#### 2. Use Rust Nightly
+   ```sh
    rustup override set nightly
    ```
 
-3. #### Build and install binary
-   ```
+#### 3. Install the Tool
+   ```sh
    cargo install --git https://github.com/berezowski/swaymsg_workspace
    ```
-   The compiled binary should be in 
+   Binary will be at:
    ```~/.cargo/bin/swaymsg_workspace```
 
+### ⚙️ Sway Config Example
 
-4. #### edit sway config
-   ```> grep swaymsg_workspace ~/.config/sway/config```
+Add these bindings to your ```~/.config/sway/config```:
+  
    ```
    ### swaymsg_workspace select previous / next
    bindsym Mod1+Ctrl+n exec ~/.cargo/bin/swaymsg_workspace next
@@ -401,15 +411,17 @@ https://github.com/user-attachments/assets/7169c4ec-6c15-4ab4-a7ec-35b221379996
 
    ```
 
-#### rofi config
-```> grep rofi ~/.config/sway/config```
+### 🧠 Rofi Integration
+
+Use ```rofi``` to rename or select workspaces:
+#### Sway Config:
 ```
 bindsym --release Mod1+Ctrl+space exec /usr/bin/rofi -show combi
 bindsym Mod1+Ctrl+r exec ~/.cargo/bin/swaymsg_workspace rename_to $(rofi -dmenu -l 0 -P "rename workspace $(~/.cargo/bin/swaymsg_workspace print_focused_name) to")
 ```
 
+#### Rofi Config (~/.config/rofi/config.rasi)
 
-```> cat ~/.config/rofi/config.rasi```
 ```
 configuration {
   modi: "combi,move to workspace:~/.cargo/bin/swaymsg_workspace rofi_move_window";
@@ -420,8 +432,8 @@ configuration {
 
 ```
 
-#### useful in this context: focusing monitors
-```> cat .config/sway/config |grep output```
+#### 🖱️ useful in this context: focusing monitors
+
 ```
 bindsym Mod1+Ctrl+m focus output right, focus child
 bindsym Mod1+Ctrl+m+Shift move workspace to output right
@@ -434,3 +446,8 @@ bindsym Mod1+Ctrl+Mod4+j move workspace to output down
 bindsym Mod1+Ctrl+Mod4+k move workspace to output up
 bindsym Mod1+Ctrl+Mod4+l move workspace to output right
 ```
+
+---
+
+## 📺 Demo
+https://github.com/user-attachments/assets/7169c4ec-6c15-4ab4-a7ec-35b221379996
