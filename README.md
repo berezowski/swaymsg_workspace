@@ -1,44 +1,22 @@
-# SWAY workspace manipulation helper
-Less confusing rename, switch, or reorder workspaces.\
-switch: This program tries very hard to keep all workspace operations on the focused monitor.\
-reorder: Move workspaces left/right like container tabs in Sway.\
-rename: Renaming remembers the workspace number.\
-Also, it serves as a binary for selecting or renaming workspaces in rofi.
+# `swaymsg_workspace`: A Better Way to Manage Sway Workspaces
 
-##### e.g. Next workspace while multiple monitors are connected
-```
-~/.cargo/bin/swaymsg_workspace next
-```
-```mermaid
-block-beta
-  columns 2
-    block:a1["Monitor 1"]:1
-      columns 3
-      A1["6 work"]
-      B1["8 messages"]
-      space:6
-    end
-    block:a2["Monitor 2"]:1
-      columns 3
-      A2["7 music"]
-      space:6    
-    end
-  space:2
-    block:b1["Monitor 1"]:1
-      columns 3
-      C1["6 work"]
-      D1["8 messages"]
-      space:6
-    end
-    block:b2["Monitor 2"]:1
-      columns 3
-      B2["7 music"]
-      space:6    
-    end
-  a1 -- "next" --> b1
-  style A1 stroke:#288,stroke-width:4px
-  style D1 stroke:#288,stroke-width:4px
-```
+This tool improves workspace management in [Sway](https://swaywm.org/) by making workspace switching, reordering, and renaming easier—especially when using multiple monitors.
+
+---
+
+## 🔧 What It Does
+
+- **Switch workspaces** (like `workspace next`) but stays on the **focused monitor**
+- **Reorder** workspaces left/right—just like browser tabs
+- **Rename** workspaces without losing their numbers
+- Integrates with **Rofi** for quick workspace selection and renaming
+
+---
+
+## 💡 Why Use It?
+
+### Problem with Default Sway Behavior
+When using multiple monitors, Sway’s built-in `workspace next` jumps to a different monitor. Or even cycles backwards through Workspaces. That’s confusing!
 
 ##### Comparison to Sway stock behaviour:
 
