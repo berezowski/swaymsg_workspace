@@ -49,25 +49,25 @@ block-beta
 
 <table style="margin-left: auto; margin-right: auto;">
 <tr><th colspan=2>Monitor1 </th><th> Monitor2 </th></tr>
-<tr><td align="center"><ins>▫ 6 work </ins></td><td align="center"><sup>  ▪ 8 messages </sup></td><td align="center"><sup>▫ 7 music</sup></td></tr>
+<tr><td align="center"><ins>▪ 6 work </ins></td><td align="center"><sup>▫ 8 messages </sup></td><td align="center"><sup>▫ 7 music</sup></td></tr>
 <tr><td colspan=3 align="center">
   
   ```next```
   
 </td></tr>
-<tr><td align="center"><sup>▫ 6 work </sup></td><td align="center"><sup>  ▪ 8 messages </sup></td><td align="center"><ins>▫ 7 music</ins></ins></tr>
+<tr><td align="center"><sup>▫ 6 work </sup></td><td align="center"><sup>▫ 8 messages </sup></td><td align="center"><ins>▪ 7 music</ins></ins></tr>
 <tr><td colspan=3 align="center">
   
   ```next```
   
   </td></tr>
-<tr><td align="center"><sup>▫ 6 work </sup></td><td align="center"><ins>  ▪ 8 messages </ins></td><td align="center"><sup>▫ 7 music</sup></td></tr>
+<tr><td align="center"><sup>▫ 6 work </sup></td><td align="center"><ins>▪ 8 messages </ins></td><td align="center"><sup>▫ 7 music</sup></td></tr>
 <tr style="text-align: center; border: none!important;"><td colspan=3 style="text-align: center; border: none!important;" align="center">
   
   ```next```
   
 </td></tr>
-<tr><td align="center"><ins>▫ 6 work </ins></td><td align="center"><sup>  ▪ 8 messages </sup></td><td align="center"><sup>▫ 7 music</sup></td></tr>
+<tr><td align="center"><ins>▪ 6 work </ins></td><td align="center"><sup>▫ 8 messages </sup></td><td align="center"><sup>▫ 7 music</sup></td></tr>
 </table>
 
 &nbsp;&nbsp;&nbsp;
@@ -76,25 +76,25 @@ block-beta
 
 <table style="margin-left: auto; margin-right: auto;">
 <tr><th colspan=2>Monitor1 </th><th> Monitor2 </th></tr>
-<tr><td align="center"><ins>▫ 6 work </ins></td><td align="center"><sup>  ▪ 8 messages </sup></td><td align="center"><sup>▫ 7 music</sup></td></tr>
+<tr><td align="center"><ins>▪ 6 work </ins></td><td align="center"><sup>▫ 8 messages </sup></td><td align="center"><sup>▫ 7 music</sup></td></tr>
 <tr><td colspan=3 align="center">
   
   ```next```
   
 </td></tr>
-<tr><td align="center"><sup>▫ 6 work </sup></td><td align="center"><ins>  ▪ 8 messages </ins></td><td align="center"><sup>▫ 7 music</sup></td></tr>
+<tr><td align="center"><sup>▫ 6 work </sup></td><td align="center"><ins>▪ 8 messages </ins></td><td align="center"><sup>▫ 7 music</sup></td></tr>
 <tr style="text-align: center; border: none!important;"><td colspan=3 style="text-align: center; border: none!important;" align="center">
   
   ```next```
   
 </td></tr>
-<tr><td align="center"><ins>▫ 6 work </ins></td><td align="center"><sup>  ▪ 8 messages </sup></td><td align="center"><sup>▫ 7 music</sup></td></tr>
+<tr><td align="center"><ins>▪ 6 work </ins></td><td align="center"><sup>▫ 8 messages </sup></td><td align="center"><sup>▫ 7 music</sup></td></tr>
 <tr style="text-align: center; border: none!important;"><td colspan=3 style="text-align: center; border: none!important;" align="center">
   
   ```next```
   
 </td></tr>
-<tr><td align="center"><sup>▫ 6 work </sup></td><td align="center"><ins>  ▪ 8 messages </ins></td><td align="center"><sup>▫ 7 music</sup></td></tr>
+<tr><td align="center"><sup>▫ 6 work </sup></td><td align="center"><ins>▪ 8 messages </ins></td><td align="center"><sup>▫ 7 music</sup></td></tr>
 </table>
 
 &nbsp;&nbsp;&nbsp;
