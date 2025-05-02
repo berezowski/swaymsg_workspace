@@ -445,10 +445,10 @@ configuration {
 #### useful in this context: focusing monitors
 ```> cat .config/sway/config |grep output```
 ```
-bindsym Mod1+Ctrl+m focus output right
+bindsym Mod1+Ctrl+m focus output right, focus child
 bindsym Mod1+Ctrl+m+Shift move workspace to output right
 
-bindsym Mod1+Ctrl+u focus output up
+bindsym Mod1+Ctrl+u focus output up, focus child
 bindsym Mod1+Ctrl+u+Shift move workspace to output up
 
 bindsym Mod1+Ctrl+Mod4+h move workspace to output left
