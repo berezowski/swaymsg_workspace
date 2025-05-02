@@ -367,7 +367,7 @@ block-beta
    Binary will be at:
    ```~/.cargo/bin/swaymsg_workspace```
 
-### ⚙️ Sway Config Example
+## ⚙️ Sway Config Example
 
 Add these bindings to your ```~/.config/sway/config```:
   
@@ -410,7 +410,7 @@ Add these bindings to your ```~/.config/sway/config```:
 
    ```
 
-### 🧠 Rofi Integration
+## 🧠 Rofi Integration
 
 Use ```rofi``` to rename or select workspaces:
 #### Sway Config:
@@ -431,7 +431,7 @@ configuration {
 
 ```
 
-#### 🖱️ useful in this context: focusing monitors
+## 🖱️ useful in this context: focusing monitors
 
 ```
 bindsym Mod1+Ctrl+m focus output right, focus child
