@@ -1,7 +1,14 @@
 [package]
 name = "swaymsg_workspace"
+description = "Improves workspace management in Sway by making workspace switching, reordering, and renaming easier—especially when using multiple monitors."
+repository = "https://github.com/berezowski/swaymsg_workspace"
+readme = "README.md"
 version = "0.1.1"
 edition = "2021"
+license = "GPL-3.0-or-later"
+license-file = "LICENSE"
+authors = ["Hubert Berezowski"]
+keywords = [ "sway", "swaywm", "sway-workspace"]
 
 [dependencies]
 regex = "1.10.4"
