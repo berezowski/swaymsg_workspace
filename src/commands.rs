@@ -19,48 +19,53 @@ pub enum Command {
 pub fn print_usage() {
 	println!("Usage: swaymsg_workspace COMMAD [ARGUMENTS]\n");
 	println!("Commands:");
-	println!("\n  Limited to current Output:");
-	print_command("next", "Switch to next Workspace on current Output");
-	print_command("prev", "Switch to previous Workspace on current Output");
+	println!("\n  Limited to current output:");
+	print_command("next", "Switch to next workspace on current output");
+	print_command("prev", "Switch to previous workspace on current output");
 	print_command(
 		"swap_with_prev",
-		"Swap current Workspace with next Workspace on current Output",
+		"Swap current workspace with next workspace on current output",
 	);
 	print_command(
 		"swap_with_next",
-		"Swap current Workspace with previous Workspace on current Output",
+		"Swap current workspace with previous workspace on current output",
 	);
-	print_command("increase", "Increase Indexnumber of current Workspace");
-	print_command("decrease", "Decrease Indexnumber of current Workspace");
-	print_command("rename_to ARGUMENT", "Rename current Workspace to ARGUMENT");
+	print_command("increase", "Increase indexnumber of current workspace");
+	print_command("decrease", "Decrease indexnumber of current workspace");
+	print_command("rename_to ARGUMENT", "Rename current workspace to ARGUMENT");
 	print_command(
 		"number ARGUMENT",
-		"Select Workspace Indexed ARUGMENT on current Output",
+		"Select workspace indexed aRUGMENT on current output",
 	);
 	print_command(
 		"move_container_to_workspace_number ARGUMENT",
-		"Move Container to Workspace Indexed ARGUMENT on current Output",
+		"Move container to workspace indexed ARGUMENT on current output",
 	);
 	print_command(
 		"print_focused_name",
-		"Print Current Workspace Name without Indexnumber",
+		"Print current workspace name without indexnumber",
 	);
 	print_command(
 		"print_focused_number",
-		"Print Current Workspace Indexnumber",
+		"Print current workspace indexnumber",
 	);
-	println!("\n  Across any Outputs:");
+	println!("\n  Across any outputs:");
 	print_command(
-		"select ARGUMENT",
-		"Select Workspace named ARUGMENT on any Output",
+		"rofi_select_workspace",
+		"print unique names of all workspaces",
 	);
 	print_command(
 		"rofi_select_workspace ARGUMENT",
-		"alias for 'select ARGUMENT'",
+		"Select workspace by unique name ARGUMENT on any output",
 	);
 	print_command(
+		"select ARGUMENT",
+		"alias for 'rofi_select_workspace ARGUMENT'",
+	);
+	print_command("rofi_move_window", "print unique names of all workspaces");
+	print_command(
 		"rofi_move_window ARGUMENT",
-		"Move Container to Workspace by full Name ARGUMENT on any Output",
+		"Move container to workspace by unique name ARGUMENT on any output",
 	);
 	println!("\n");
 }
