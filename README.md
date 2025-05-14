@@ -86,24 +86,30 @@ When using multiple monitors, Sway’s built-in `workspace next` jumps to a diff
 
 ## ✨ Features Overview
 
+#### General Commands 
+
+Limited to current Output
+
 | Feature | What it does |
 |--------|--------------|
-| - General Commands <Argument> | Limited to current Output |
-| | |
 | `next`, `prev` | [Go to next/previous workspace on the same monitor](#select-workspace) |
 | `swap_with_next`, `swap_with_prev` | [Reorder current workspace left/right on the same monitor](#swap-workspace) |
 | `increase`, `decrease` | [Reassign workspace to next/previous number](#index-workspace) |
 | `rename_to <name>` | [Rename a workspace but keep its number](#rename-workspace) |
 | `number <n>` | [Go to workspace `<n>` on the same monitor](#select-workspace-while-multiple-monitors-are-connected) |
 | `move_container_to_workspace_number <n>` | [Move focused window to workspace `<n>` on same monitor](#move-window-to-workspace-number-while-multiple-monitors-are-connected) |
-| | |
-| - Rofi integration Commands <Argument> | Across all Outputs |
-| | |
-| `rofi_select_workspace` | print unique names of all Workspaces |
-| `rofi_select_workspace <unique name>` | Select Workspace by unique name |
+
+#### Rofi integration Commands 
+
+Across all Outputs
+
+| Feature | What it does |
+|--------|--------------|
+| `rofi_select_workspace` | Print unique names of all workspaces |
+| `rofi_select_workspace <unique name>` | Select workspace by unique name |
 | `select <unique name>` | Alias for `rofi_select_workspace <unique name>` |
-| `rofi_move_window` | print unique names of all Workspaces |
-| `rofi_move_window <unique name>` | Move Container to Workspace idetified by unique name |
+| `rofi_move_window` | Print unique names of all workspaces |
+| `rofi_move_window <unique name>` | Move container to workspace idetified by unique name |
 
 ##### Select workspace
 ```
