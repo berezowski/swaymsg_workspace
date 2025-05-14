@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use core::fmt::Debug;
 use std::any::Any;
 use std::cell::RefCell;
@@ -42,12 +43,12 @@ pub trait WorkspaceProxy {
 impl Debug for dyn WorkspaceProxy {
 	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
 		write!(
-		       f,
-		       "WorkspaceProxy{{ name: {} num: {} output: {}  focused: {} }}",
-		       self.get_name(),
-		       self.get_num().unwrap(),
-		       self.get_output(),
-		       self.get_focused()
+			f,
+			"WorkspaceProxy{{ name: {} num: {} output: {}  focused: {} }}",
+			self.get_name(),
+			self.get_num().unwrap(),
+			self.get_output(),
+			self.get_focused()
 		)
 	}
 }
@@ -60,10 +61,10 @@ pub trait OutputProxy {
 impl Debug for dyn OutputProxy {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(
-		       f,
-		       "OutputProxy{{ name: {} focused: {} }}",
-		       self.get_name(),
-		       self.get_focused()
+			f,
+			"OutputProxy{{ name: {} focused: {} }}",
+			self.get_name(),
+			self.get_focused()
 		)
 	}
 }
@@ -77,10 +78,12 @@ pub trait IPCAdapter {
 	/// Breaks up ipcAdapter into objects and passing on ownership of those
 	///
 	fn explode(
-		self)
-		-> (RefCell<Box<dyn ConnectionProxy>>,
-		    Vec<Box<dyn WorkspaceProxy>>,
-		    Vec<Box<dyn OutputProxy>>);
+		self,
+	) -> (
+		RefCell<Box<dyn ConnectionProxy>>,
+		Vec<Box<dyn WorkspaceProxy>>,
+		Vec<Box<dyn OutputProxy>>,
+	);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -203,23 +206,29 @@ impl IPCAdapter for MockIPCAdapter {
 	/// - 1 Output "eDP-1"
 	///
 	fn new() -> impl IPCAdapter {
-		MockIPCAdapter { connection:
-			                 RefCell::new(Box::new(MockConnection { commandhistory:
-				                                                        Rc::new(vec![].into()) })),
-		                 workspaces: vec![
-		                                  Box::new(MockWorkspace { num: Some(1),
-		                                                           name: "Foo".to_string(),
-		                                                           output:
-			                                                           "eDP-1".to_string(),
-		                                                           focused: true, }),
-		                                  Box::new(MockWorkspace { num: Some(2),
-		                                                           name: "Bar".to_string(),
-		                                                           output:
-			                                                           "eDP-1".to_string(),
-		                                                           focused: false, }),
-		],
-		                 outputs: vec![Box::new(MockOutput { focused: true,
-		                                                     name: "eDP-1".to_string() })] }
+		MockIPCAdapter {
+			connection: RefCell::new(Box::new(MockConnection {
+				commandhistory: Rc::new(vec![].into()),
+			})),
+			workspaces: vec![
+				Box::new(MockWorkspace {
+					num: Some(1),
+					name: "Foo".to_string(),
+					output: "eDP-1".to_string(),
+					focused: true,
+				}),
+				Box::new(MockWorkspace {
+					num: Some(2),
+					name: "Bar".to_string(),
+					output: "eDP-1".to_string(),
+					focused: false,
+				}),
+			],
+			outputs: vec![Box::new(MockOutput {
+				focused: true,
+				name: "eDP-1".to_string(),
+			})],
+		}
 	}
 
 	///
@@ -235,10 +244,12 @@ impl IPCAdapter for MockIPCAdapter {
 	/// let (connection, ipcworkspaces, ipcoutputs) = ipcadapter.explode();
 	/// ```
 	fn explode(
-		self)
-		-> (RefCell<Box<dyn ConnectionProxy>>,
-		    Vec<Box<dyn WorkspaceProxy>>,
-		    Vec<Box<dyn OutputProxy>>) {
+		self,
+	) -> (
+		RefCell<Box<dyn ConnectionProxy>>,
+		Vec<Box<dyn WorkspaceProxy>>,
+		Vec<Box<dyn OutputProxy>>,
+	) {
 		(self.connection, self.workspaces, self.outputs)
 	}
 }
@@ -324,21 +335,23 @@ pub struct SwayIPCAdapter {
 impl IPCAdapter for SwayIPCAdapter {
 	fn new() -> impl IPCAdapter {
 		if let Some(mut connection) = swayipc::Connection::new().ok() {
-			match (swayipc::Connection::get_workspaces(&mut connection),
-			       swayipc::Connection::get_outputs(&mut connection))
-			{
-				(Ok(workspaces), Ok(outputs)) => {
-					SwayIPCAdapter { connection: SwayConnection { connection:
-						                                              RefCell::new(connection) },
-					                 workspaces: workspaces.iter()
-					                                       .map(|workspace| {
-						                                       SwayWorkspaceProxy::new(workspace.to_owned())
-					                                       })
-					                                       .collect::<Vec<Box<dyn WorkspaceProxy>>>(),
-					                 outputs: outputs.iter()
-					                                 .map(|output| SwayOutputProxy::new(output.to_owned()))
-					                                 .collect::<Vec<Box<dyn OutputProxy>>>() }
-				}
+			match (
+				swayipc::Connection::get_workspaces(&mut connection),
+				swayipc::Connection::get_outputs(&mut connection),
+			) {
+				(Ok(workspaces), Ok(outputs)) => SwayIPCAdapter {
+					connection: SwayConnection {
+						connection: RefCell::new(connection),
+					},
+					workspaces: workspaces
+						.iter()
+						.map(|workspace| SwayWorkspaceProxy::new(workspace.to_owned()))
+						.collect::<Vec<Box<dyn WorkspaceProxy>>>(),
+					outputs: outputs
+						.iter()
+						.map(|output| SwayOutputProxy::new(output.to_owned()))
+						.collect::<Vec<Box<dyn OutputProxy>>>(),
+				},
 				_ => panic!("Got no Workspaces or Outputs from IPC Connection"),
 			}
 		} else {
@@ -346,10 +359,16 @@ impl IPCAdapter for SwayIPCAdapter {
 		}
 	}
 	fn explode(
-		self)
-		-> (RefCell<Box<dyn ConnectionProxy>>,
-		    Vec<Box<dyn WorkspaceProxy>>,
-		    Vec<Box<dyn OutputProxy>>) {
-		(RefCell::new(Box::new(self.connection)), self.workspaces, self.outputs)
+		self,
+	) -> (
+		RefCell<Box<dyn ConnectionProxy>>,
+		Vec<Box<dyn WorkspaceProxy>>,
+		Vec<Box<dyn OutputProxy>>,
+	) {
+		(
+			RefCell::new(Box::new(self.connection)),
+			self.workspaces,
+			self.outputs,
+		)
 	}
 }
