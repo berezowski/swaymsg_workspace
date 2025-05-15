@@ -1,0 +1,588 @@
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-ryu-1.0.18",
+      "description": "Fast floating point to string conversion",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/ryu"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/ryu"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR BSL-1.0"
+        }
+      ],
+      "name": "ryu",
+      "purl": "pkg:cargo/ryu@1.0.18",
+      "type": "library",
+      "version": "1.0.18"
+    },
+    {
+      "author": "Andrew Gallant <jamslam@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-aho-corasick-1.1.3",
+      "description": "Fast multiple substring searching.",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/BurntSushi/aho-corasick"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/BurntSushi/aho-corasick"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Unlicense OR MIT"
+        }
+      ],
+      "name": "aho-corasick",
+      "purl": "pkg:cargo/aho-corasick@1.1.3",
+      "type": "library",
+      "version": "1.1.3"
+    },
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-itoa-1.0.11",
+      "description": "Fast integer primitive to string conversion",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/itoa"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/itoa"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "itoa",
+      "purl": "pkg:cargo/itoa@1.0.11",
+      "type": "library",
+      "version": "1.0.11"
+    },
+    {
+      "author": "The Rust Project Developers, Andrew Gallant <jamslam@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-regex-1.11.1",
+      "description": "An implementation of regular expressions for Rust. This implementation uses\nfinite automata and guarantees linear time matching on all inputs.\n",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/regex"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/rust-lang/regex"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/rust-lang/regex"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "regex",
+      "purl": "pkg:cargo/regex@1.11.1",
+      "type": "library",
+      "version": "1.11.1"
+    },
+    {
+      "author": "The Rust Project Developers, Andrew Gallant <jamslam@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-regex-automata-0.4.8",
+      "description": "Automata construction and matching using regular expressions.",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/regex-automata"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/rust-lang/regex/tree/master/regex-automata"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "regex-automata",
+      "purl": "pkg:cargo/regex-automata@0.4.8",
+      "type": "library",
+      "version": "0.4.8"
+    },
+    {
+      "author": "Andrew Gallant <jamslam@gmail.com>, bluss",
+      "bom-ref": "CycloneDxRef-Component-memchr-2.7.4",
+      "description": "Provides extremely fast (uses SIMD on x86_64, aarch64 and wasm32) routines for\n1, 2 or 3 byte search and single substring search.\n",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/memchr/"
+        },
+        {
+          "type": "website",
+          "url": "https://github.com/BurntSushi/memchr"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/BurntSushi/memchr"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Unlicense OR MIT"
+        }
+      ],
+      "name": "memchr",
+      "purl": "pkg:cargo/memchr@2.7.4",
+      "type": "library",
+      "version": "2.7.4"
+    },
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>, Alex Crichton <alex@alexcrichton.com>",
+      "bom-ref": "CycloneDxRef-Component-proc-macro2-1.0.89",
+      "description": "A substitute implementation of the compiler's `proc_macro` API to decouple token-based libraries from the procedural macro use case.",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/proc-macro2"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/proc-macro2"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "proc-macro2",
+      "purl": "pkg:cargo/proc-macro2@1.0.89",
+      "type": "library",
+      "version": "1.0.89"
+    },
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-quote-1.0.37",
+      "description": "Quasi-quoting macro quote!(...)",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/quote/"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/quote"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "quote",
+      "purl": "pkg:cargo/quote@1.0.37",
+      "type": "library",
+      "version": "1.0.37"
+    },
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-thiserror-impl-1.0.65",
+      "description": "Implementation detail of the `thiserror` crate",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/thiserror"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "thiserror-impl",
+      "purl": "pkg:cargo/thiserror-impl@1.0.65",
+      "type": "application",
+      "version": "1.0.65"
+    },
+    {
+      "author": "Jayce Fayne <jayce.fayne@mailbox.org>",
+      "bom-ref": "CycloneDxRef-Component-swayipc-3.0.2",
+      "description": "A library for controlling sway through its IPC interface",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/jaycefayne/swayipc-rs"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "swayipc",
+      "purl": "pkg:cargo/swayipc@3.0.2",
+      "type": "library",
+      "version": "3.0.2"
+    },
+    {
+      "author": "Erick Tryzelaar <erick.tryzelaar@gmail.com>, David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-serde_json-1.0.132",
+      "description": "A JSON serialization file format",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/serde_json"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/serde-rs/json"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "serde_json",
+      "purl": "pkg:cargo/serde_json@1.0.132",
+      "type": "library",
+      "version": "1.0.132"
+    },
+    {
+      "author": "The Rust Project Developers, Andrew Gallant <jamslam@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-regex-syntax-0.8.5",
+      "description": "A regular expression parser.",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/regex-syntax"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/rust-lang/regex/tree/master/regex-syntax"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "regex-syntax",
+      "purl": "pkg:cargo/regex-syntax@0.8.5",
+      "type": "library",
+      "version": "0.8.5"
+    },
+    {
+      "author": "Erick Tryzelaar <erick.tryzelaar@gmail.com>, David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-serde-1.0.214",
+      "description": "A generic serialization/deserialization framework",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/serde"
+        },
+        {
+          "type": "website",
+          "url": "https://serde.rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/serde-rs/serde"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "serde",
+      "purl": "pkg:cargo/serde@1.0.214",
+      "type": "library",
+      "version": "1.0.214"
+    },
+    {
+      "author": "Erick Tryzelaar <erick.tryzelaar@gmail.com>, David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-serde_derive-1.0.214",
+      "description": "Macros 1.1 implementation of #[derive(Serialize, Deserialize)]",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://serde.rs/derive.html"
+        },
+        {
+          "type": "website",
+          "url": "https://serde.rs"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/serde-rs/serde"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "serde_derive",
+      "purl": "pkg:cargo/serde_derive@1.0.214",
+      "type": "application",
+      "version": "1.0.214"
+    },
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-unicode-ident-1.0.13",
+      "description": "Determine whether characters have the XID_Start or XID_Continue properties according to Unicode Standard Annex #31",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/unicode-ident"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/unicode-ident"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "(MIT OR Apache-2.0) AND Unicode-DFS-2016"
+        }
+      ],
+      "name": "unicode-ident",
+      "purl": "pkg:cargo/unicode-ident@1.0.13",
+      "type": "library",
+      "version": "1.0.13"
+    },
+    {
+      "author": "Jayce Fayne <jayce.fayne@mailbox.org>",
+      "bom-ref": "CycloneDxRef-Component-swayipc-types-1.4.0",
+      "description": "A library containing Type defintions from sway's IPC interface",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/jaycefayne/swayipc-rs"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "name": "swayipc-types",
+      "purl": "pkg:cargo/swayipc-types@1.4.0",
+      "type": "library",
+      "version": "1.4.0"
+    },
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-thiserror-1.0.65",
+      "description": "derive(Error)",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/thiserror"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/thiserror"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "thiserror",
+      "purl": "pkg:cargo/thiserror@1.0.65",
+      "type": "library",
+      "version": "1.0.65"
+    },
+    {
+      "author": "David Tolnay <dtolnay@gmail.com>",
+      "bom-ref": "CycloneDxRef-Component-syn-2.0.85",
+      "description": "Parser for Rust source code",
+      "externalReferences": [
+        {
+          "type": "documentation",
+          "url": "https://docs.rs/syn"
+        },
+        {
+          "type": "vcs",
+          "url": "https://github.com/dtolnay/syn"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "name": "syn",
+      "purl": "pkg:cargo/syn@2.0.85",
+      "type": "library",
+      "version": "2.0.85"
+    }
+  ],
+  "dependencies": [
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-memchr-2.7.4",
+        "CycloneDxRef-Component-aho-corasick-1.1.3",
+        "CycloneDxRef-Component-regex-syntax-0.8.5"
+      ],
+      "ref": "CycloneDxRef-Component-regex-automata-0.4.8"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-proc-macro2-1.0.89"
+      ],
+      "ref": "CycloneDxRef-Component-quote-1.0.37"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-thiserror-1.0.65",
+        "CycloneDxRef-Component-serde_json-1.0.132",
+        "CycloneDxRef-Component-serde-1.0.214"
+      ],
+      "ref": "CycloneDxRef-Component-swayipc-types-1.4.0"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-serde-1.0.214",
+        "CycloneDxRef-Component-swayipc-types-1.4.0",
+        "CycloneDxRef-Component-serde_json-1.0.132"
+      ],
+      "ref": "CycloneDxRef-Component-swayipc-3.0.2"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-swayipc-3.0.2",
+        "CycloneDxRef-Component-regex-1.11.1"
+      ],
+      "ref": "CycloneDxRef-Component-swaymsg_workspace-0.1.1"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-serde_derive-1.0.214"
+      ],
+      "ref": "CycloneDxRef-Component-serde-1.0.214"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-syn-2.0.85",
+        "CycloneDxRef-Component-quote-1.0.37",
+        "CycloneDxRef-Component-proc-macro2-1.0.89"
+      ],
+      "ref": "CycloneDxRef-Component-serde_derive-1.0.214"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-memchr-2.7.4"
+      ],
+      "ref": "CycloneDxRef-Component-aho-corasick-1.1.3"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-proc-macro2-1.0.89",
+        "CycloneDxRef-Component-quote-1.0.37",
+        "CycloneDxRef-Component-unicode-ident-1.0.13"
+      ],
+      "ref": "CycloneDxRef-Component-syn-2.0.85"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-memchr-2.7.4",
+        "CycloneDxRef-Component-regex-syntax-0.8.5",
+        "CycloneDxRef-Component-regex-automata-0.4.8",
+        "CycloneDxRef-Component-aho-corasick-1.1.3"
+      ],
+      "ref": "CycloneDxRef-Component-regex-1.11.1"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-unicode-ident-1.0.13"
+      ],
+      "ref": "CycloneDxRef-Component-proc-macro2-1.0.89"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-serde-1.0.214",
+        "CycloneDxRef-Component-itoa-1.0.11",
+        "CycloneDxRef-Component-memchr-2.7.4",
+        "CycloneDxRef-Component-ryu-1.0.18"
+      ],
+      "ref": "CycloneDxRef-Component-serde_json-1.0.132"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-thiserror-impl-1.0.65"
+      ],
+      "ref": "CycloneDxRef-Component-thiserror-1.0.65"
+    },
+    {
+      "dependsOn": [
+        "CycloneDxRef-Component-proc-macro2-1.0.89",
+        "CycloneDxRef-Component-quote-1.0.37",
+        "CycloneDxRef-Component-syn-2.0.85"
+      ],
+      "ref": "CycloneDxRef-Component-thiserror-impl-1.0.65"
+    }
+  ],
+  "metadata": {
+    "authors": [
+      {
+        "name": "hubert"
+      }
+    ],
+    "component": {
+      "components": [
+        {
+          "author": "Hubert Berezowski",
+          "bom-ref": "CycloneDxRef-Component-swaymsg_workspace-0.1.1",
+          "description": "Improves workspace management in Sway by making workspace switching, reordering, and renaming easier—especially when using multiple monitors.",
+          "externalReferences": [
+            {
+              "type": "vcs",
+              "url": "https://github.com/berezowski/swaymsg_workspace"
+            }
+          ],
+          "licenses": [
+            {
+              "expression": "GPL-3.0-or-later"
+            }
+          ],
+          "name": "swaymsg_workspace",
+          "type": "library",
+          "version": "0.1.1"
+        }
+      ],
+      "name": "swaymsg_workspace",
+      "type": "application"
+    },
+    "timestamp": "2025-05-15T22:28:38.332Z",
+    "tools": [
+      {
+        "name": "cargo-sbom",
+        "version": "0.9.1"
+      }
+    ]
+  },
+  "serialNumber": "urn:uuid:2deb7b4b-6dc7-49fa-a53e-5dbfa755537f",
+  "specVersion": "1.4",
+  "version": 1
+}
