@@ -32,14 +32,14 @@ pub fn print_usage() {
 	);
 	print_command("increase", "Increase indexnumber of current workspace");
 	print_command("decrease", "Decrease indexnumber of current workspace");
-	print_command("rename_to ARGUMENT", "Rename current workspace to ARGUMENT");
+	print_command("rename_to <name>", "Rename current workspace to <name>");
 	print_command(
-		"number ARGUMENT",
-		"Select workspace indexed aRUGMENT on current output",
+		"number <n>",
+		"Select workspace indexed <n> on current output",
 	);
 	print_command(
-		"move_container_to_workspace_number ARGUMENT",
-		"Move container to workspace indexed ARGUMENT on current output",
+		"move_container_to_workspace_number <n>",
+		"Move container to workspace indexed <n> on current output",
 	);
 	print_command(
 		"print_focused_name",
@@ -55,21 +55,21 @@ pub fn print_usage() {
 		"print unique names of all workspaces",
 	);
 	print_command(
-		"rofi_select_workspace ARGUMENT",
-		"Select workspace by unique name ARGUMENT on any output",
+		"rofi_select_workspace <unique name>",
+		"Select workspace by unique name <unique name> on any output",
 	);
 	print_command(
-		"select ARGUMENT",
-		"alias for 'rofi_select_workspace ARGUMENT'",
+		"select <unique name>",
+		"alias for 'rofi_select_workspace <unique name>'",
 	);
 	print_command("rofi_move_window", "print unique names of all workspaces");
 	print_command(
-		"rofi_move_window ARGUMENT",
-		"Move container to workspace by unique name ARGUMENT on any output",
+		"rofi_move_window <unique name>",
+		"Move container to workspace by <unique name> on any output",
 	);
 	println!("\n");
 }
 
 fn print_command(command: &str, description: &str) {
-	eprintln!("  {command:<45}{description}");
+	eprintln!("  {command:<40}{description}");
 }
