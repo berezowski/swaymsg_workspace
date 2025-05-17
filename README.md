@@ -464,4 +464,6 @@ bindsym Mod1+Ctrl+Mod4+l move workspace to output right
 ---
 
 ## 📺 Demo
-https://github.com/user-attachments/assets/7169c4ec-6c15-4ab4-a7ec-35b221379996
+
+https://github.com/user-attachments/assets/bd700bef-38aa-4960-b371-67e5dce1aa03
+
