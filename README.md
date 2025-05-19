@@ -428,14 +428,15 @@ Add these bindings to your ```~/.config/sway/config```:
 ## 🧠 Rofi Integration
 
 Use ```rofi``` to rename or select workspaces:
-#### Sway Config:
+#### Sway Config
+`~/.config/sway/config`:
 ```
 bindsym --release Mod1+Ctrl+space exec /usr/bin/rofi -show combi
 bindsym Mod1+Ctrl+r exec ~/.cargo/bin/swaymsg_workspace rename_to $(rofi -dmenu -l 0 -P "rename workspace $(~/.cargo/bin/swaymsg_workspace print_focused_name) to")
 ```
 
-#### Rofi Config (~/.config/rofi/config.rasi)
-
+#### Rofi Config
+`~/.config/rofi/config.rasi`:
 ```
 configuration {
   modi: "combi,move to workspace:~/.cargo/bin/swaymsg_workspace rofi_move_window";
@@ -448,6 +449,7 @@ configuration {
 
 ## 🖱️ useful in this context: focusing monitors
 
+`~/.config/sway/config`:
 ```
 bindsym Mod1+Ctrl+m focus output right, focus child
 bindsym Mod1+Ctrl+m+Shift move workspace to output right
