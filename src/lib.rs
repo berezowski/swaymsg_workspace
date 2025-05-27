@@ -11,98 +11,100 @@ pub mod ipcadapter;
 pub mod workspaces;
 use crate::commands::{print_usage, Command};
 
-pub fn execute_userinput(
-	workspaces: Rc<Workspaces>,
-	command: Command,
-	argument_parameter: Option<String>,
-) -> IpcResult {
+pub fn execute_userinput(workspaces: Rc<Workspaces>,
+                         command: Command,
+                         argument_parameter: Option<String>)
+                         -> IpcResult {
 	match command {
-		Command::Next => match &mut workspaces
-			.on_same_screen()
-			.next_of(workspaces.focused_index())
+		Command::Next => match &mut workspaces.on_same_screen()
+		                                      .next_of(workspaces.focused_index())
 		{
 			Some(workspace) => workspaces.select(&workspace.basename),
 			None => match argument_parameter {
-				Some(_) => workspaces.select(
-					// any additional argument triggers navigation across all workspaces
-					&workspaces
-						.on_other_screen()
-						.first()
-						.or_else(|| workspaces.on_same_screen().first())
-						.expect("There has to bee at least one Workspace")
-						.basename,
-				),
-				None => workspaces.select(
-					&workspaces
-						.on_same_screen()
-						.first()
-						.expect("There has to bee at least one Workspace")
-						.basename,
-				),
+				Some(_) => {
+					workspaces.select(
+					                  // any additional argument triggers navigation across all workspaces
+					                  &workspaces.on_other_screen()
+					                             .first()
+					                             .or_else(|| workspaces.on_same_screen().first())
+					                             .expect("There has to bee at least one Workspace")
+					                             .basename,
+					)
+				}
+				None => {
+					workspaces.select(
+					                  &workspaces.on_same_screen()
+					                             .first()
+					                             .expect("There has to bee at least one Workspace")
+					                             .basename,
+					)
+				}
 			},
 		},
-		Command::Prev => match &workspaces
-			.on_same_screen()
-			.prev_of(workspaces.focused_index())
+		Command::Prev => match &workspaces.on_same_screen()
+		                                  .prev_of(workspaces.focused_index())
 		{
 			Some(workspace) => workspaces.select(&workspace.basename),
 			None => match argument_parameter {
-				Some(_) => workspaces.select(
-					// any additional argument triggers navigation across all workspaces
-					&workspaces
-						.on_other_screen()
-						.last()
-						.or_else(|| workspaces.on_same_screen().last())
-						.expect("There has to bee at least one Workspace")
-						.basename,
-				),
-				None => workspaces.select(
-					&workspaces
-						.on_same_screen()
-						.last()
-						.expect("There has to bee at least one Workspace")
-						.basename,
-				),
+				Some(_) => {
+					workspaces.select(
+					                  // any additional argument triggers navigation across all workspaces
+					                  &workspaces.on_other_screen()
+					                             .last()
+					                             .or_else(|| workspaces.on_same_screen().last())
+					                             .expect("There has to bee at least one Workspace")
+					                             .basename,
+					)
+				}
+				None => {
+					workspaces.select(
+					                  &workspaces.on_same_screen()
+					                             .last()
+					                             .expect("There has to bee at least one Workspace")
+					                             .basename,
+					)
+				}
 			},
 		},
 		Command::SwapWithNext => swap_workspace(
-			&workspaces,
-			workspaces.on_same_screen().get(workspaces.focused_index()),
-			workspaces
-				.on_same_screen()
-				.next_of(workspaces.focused_index()),
+		                                        &workspaces,
+		                                        workspaces.on_same_screen()
+		                                                  .get(workspaces.focused_index()),
+		                                        workspaces.on_same_screen()
+		                                                  .next_of(workspaces.focused_index()),
 		),
 		Command::SwapWithPrev => swap_workspace(
-			&workspaces,
-			workspaces
-				.on_same_screen()
-				.prev_of(workspaces.focused_index()),
-			workspaces.on_same_screen().get(workspaces.focused_index()),
+		                                        &workspaces,
+		                                        workspaces.on_same_screen()
+		                                                  .prev_of(workspaces.focused_index()),
+		                                        workspaces.on_same_screen()
+		                                                  .get(workspaces.focused_index()),
 		),
-		Command::Increase => match (
-			workspaces.get_focused(),
-			workspaces
-				.on_same_screen()
-				.next_of(workspaces.focused_index())
-				.into_iter()
-				// filter out anything but the workspace with the number which this increase would inhabit
-				.filter(|next| &workspaces.get_focused().get_number() + 1 == next.get_number())
-				.last(),
-		) {
+		Command::Increase => match (workspaces.get_focused(),
+		                            workspaces.on_same_screen()
+		                                      .next_of(workspaces.focused_index())
+		                                      .into_iter()
+		                                      // filter out anything but the workspace with the number which this increase would inhabit
+		                                      .filter(|next| {
+			                                      &workspaces.get_focused().get_number() + 1
+			                                      == next.get_number()
+		                                      })
+		                                      .next_back())
+		{
 			(ws1, Some(ws2)) => workspaces.swap(ws1, ws2),
 			(ws, None) => workspaces.increase_number(ws),
 		},
 		Command::Decrease => {
-			match (
-				workspaces
-					.on_same_screen()
-					.prev_of(workspaces.focused_index())
-					.into_iter()
-					// filter out anything but the workspace with the number which this decrease would inhabit
-					.filter(|prev| prev.get_number() + 1 == workspaces.get_focused().get_number())
-					.last(),
-				workspaces.get_focused(),
-			) {
+			match (workspaces.on_same_screen()
+			                 .prev_of(workspaces.focused_index())
+			                 .into_iter()
+			                 // filter out anything but the workspace with the number which this decrease would inhabit
+			                 .filter(|prev| {
+				                 prev.get_number() + 1 == workspaces.get_focused().get_number()
+			                 })
+			                 .next_back(),
+			       workspaces.get_focused())
+			{
 				(Some(ws1), ws2) => workspaces.swap(ws1, ws2),
 				(None, ws) => workspaces.decrease_number(ws),
 			}
@@ -115,9 +117,8 @@ pub fn execute_userinput(
 					new_name
 				))
 			} else {
-				workspaces
-					.get_focused()
-					.rename(&format!("{}", workspaces.get_focused().get_number()))
+				workspaces.get_focused()
+				          .rename(&format!("{}", workspaces.get_focused().get_number()))
 			}
 		}
 		Command::Number => match argument_parameter.and_then(|param| param.parse::<usize>().ok()) {
@@ -136,12 +137,10 @@ pub fn execute_userinput(
 		},
 		Command::PrintFocusedName => {
 			println!("{}", workspaces.get_focused().get_name());
-			// Ok(vec![workspaces.get_focused().get_name().to_string()])
 			Ok(vec!["nonipc: print_focused_name".to_string()])
 		}
 		Command::PrintFocusedNumber => {
 			println!("{}", workspaces.get_focused().get_number());
-			// Ok(vec![workspaces.get_focused().get_number().to_string()])
 			Ok(vec!["nonipc: print_focused_number".to_string()])
 		}
 		Command::RofiSelectWorkspace => match argument_parameter {
@@ -149,10 +148,9 @@ pub fn execute_userinput(
 				execute_userinput(workspaces.clone(), Command::Select, Some(workspacename))
 			}
 			None => {
-				workspaces
-					.on_all_screens()
-					.iter()
-					.for_each(|ws| println!("{}", ws.basename));
+				workspaces.on_all_screens()
+				          .iter()
+				          .for_each(|ws| println!("{}", ws.basename));
 				Ok(vec!["nonipc: rofi_select_workspace".to_string()])
 			}
 		},
@@ -161,38 +159,34 @@ pub fn execute_userinput(
 				Some(_number) => workspaces.move_container_to(&workspacename),
 				None => workspaces.move_container_to(&format!(
 					"{} {}",
-					find_free_adjecent_workspace_num(&workspaces.on_same_screen()),
+					find_free_adjecent_workspace_num(workspaces.on_same_screen()),
 					&workspacename
 				)),
 			},
 			None => {
-				workspaces
-					.on_all_screens()
-					.iter()
-					.for_each(|ws| println!("{}", ws.basename));
+				workspaces.on_all_screens()
+				          .iter()
+				          .for_each(|ws| println!("{}", ws.basename));
 				Ok(vec!["nonipc: rofi_move_window".to_string()])
 			}
 		},
 		Command::Usage => {
-			// eprintln!("valid arguments: [ next prev swap_with_prev swap_with_next increase decrease rename_to select print_focused_name print_focused_number rofi_select_workspace rofi_move_window ]. ");
 			print_usage();
 			Ok(vec!["nonipc: Instructions printed".to_string()])
 		}
-	}
-	.and_then(|mut dirty| {
+	}.and_then(|mut dirty| {
 		// clean workspace names from 'collision avoidance tokens'
-		workspaces.cleanup().and_then(|clean| {
-			dirty.extend(clean);
-			Ok(dirty)
-		})
+		workspaces.cleanup().map(|clean| {
+			                    dirty.extend(clean);
+			                    dirty
+		                    })
 	})
 }
 
-fn swap_workspace(
-	workspaces: &Workspaces,
-	prev: Option<&Workspace>,
-	next: Option<&Workspace>,
-) -> IpcResult {
+fn swap_workspace(workspaces: &Workspaces,
+                  prev: Option<&Workspace>,
+                  next: Option<&Workspace>)
+                  -> IpcResult {
 	match (prev, next) {
 		(Some(prev), Some(next)) => workspaces.swap(prev, next),
 		(Some(prev), None) => {

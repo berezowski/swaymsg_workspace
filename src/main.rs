@@ -14,11 +14,10 @@ fn main() {
 	let workspaces = Workspaces::new(ipcadapter);
 
 	// split args by ' ' to handle the combined argument which rofi supplies
-	let mut args = env::args()
-		.collect::<Vec<String>>()
-		.into_iter()
-		.flat_map(|arg| arg.split(' ').map(str::to_owned).collect::<Vec<String>>())
-		.into_iter();
+	let mut args =
+		env::args().collect::<Vec<String>>()
+		           .into_iter()
+		           .flat_map(|arg| arg.split(' ').map(str::to_owned).collect::<Vec<String>>());
 
 	if let Some(main_argument) = args.nth(1) {
 		let command_from_argument = match main_argument.as_str() {
@@ -44,9 +43,9 @@ fn main() {
 		};
 
 		if let Err(error) = execute_userinput(
-			workspaces,
-			command_from_argument,
-			args.reduce(|a, b| format!("{} {}", a, b)), // parameters to argument
+		                                      workspaces,
+		                                      command_from_argument,
+		                                      args.reduce(|a, b| format!("{} {}", a, b)), // parameters to argument
 		) {
 			eprintln!("Something broke: {error}");
 		}
